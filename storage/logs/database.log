@@ -1,0 +1,228 @@
+[2026-07-19 12:00:03] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\public\index.php(167): App\Core\Router->dispatch()
+#5 {main}
+[2026-07-19 12:00:44] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('DashboardContro...', Array)
+#4 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\public\index.php(167): App\Core\Router->dispatch()
+#5 {main}
+[2026-07-19 12:00:51] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\public\index.php(167): App\Core\Router->dispatch()
+#5 {main}
+[2026-07-19 12:01:00] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\public\index.php(167): App\Core\Router->dispatch()
+#5 {main}
+[2026-07-19 12:01:03] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\Users\ADMIN\.gemini\antigravity\scratch\facturacion-pucallpa\public\index.php(167): App\Core\Router->dispatch()
+#5 {main}
+[2026-07-22 09:20:21] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(148): App\Core\Router->dispatch()
+#5 {main}
+[2026-07-22 12:18:35] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(148): App\Core\Router->dispatch()
+#5 {main}
+[2026-08-13 20:32:15] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(180): App\Core\Router->dispatch()
+#5 {main}
+[2026-08-14 00:21:37] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('DashboardContro...', Array)
+#4 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(180): App\Core\Router->dispatch()
+#5 {main}
+[2026-08-14 10:53:50] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(180): App\Core\Router->dispatch()
+#5 {main}
+[2026-08-20 09:16:00] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(180): App\Core\Router->dispatch()
+#5 {main}
+[2026-08-29 11:31:19] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(182): App\Core\Router->dispatch()
+#5 {main}
+[2026-08-30 12:02:53] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(182): App\Core\Router->dispatch()
+#5 {main}
+[2026-08-30 13:59:13] [ERROR DB] [42S22] Error en consulta SQL: 
+                SELECT id, codigo, nombre, stock, stock_minimo 
+                FROM productos 
+                WHERE stock <= stock_minimo 
+                AND estado = 1 
+                ORDER BY (stock - stock_minimo) ASC 
+                LIMIT 10
+            : SQLSTATE[42S22]: Column not found: 1054 Unknown column 'codigo' in 'field list'
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(105): PDO->prepare('\r\n             ...')
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(127): Config\Database->query('\r\n             ...', Array)
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Controllers\NotificationController.php(33): Config\Database->fetchAll('\r\n             ...')
+#3 [internal function]: App\Controllers\NotificationController->alertasStock()
+#4 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(351): call_user_func_array(Array, Array)
+#5 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('NotificationCon...', Array)
+#6 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(184): App\Core\Router->dispatch()
+#7 {main}
+[2026-08-30 13:59:19] [ERROR DB] [42S22] Error en consulta SQL: 
+                SELECT id, codigo, nombre, stock, stock_minimo 
+                FROM productos 
+                WHERE stock <= stock_minimo 
+                AND estado = 1 
+                ORDER BY (stock - stock_minimo) ASC 
+                LIMIT 10
+            : SQLSTATE[42S22]: Column not found: 1054 Unknown column 'codigo' in 'field list'
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(105): PDO->prepare('\r\n             ...')
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(127): Config\Database->query('\r\n             ...', Array)
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Controllers\NotificationController.php(33): Config\Database->fetchAll('\r\n             ...')
+#3 [internal function]: App\Controllers\NotificationController->alertasStock()
+#4 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(351): call_user_func_array(Array, Array)
+#5 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('NotificationCon...', Array)
+#6 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(184): App\Core\Router->dispatch()
+#7 {main}
+[2026-08-30 13:59:28] [ERROR DB] [42S22] Error en consulta SQL: 
+                SELECT id, codigo, nombre, stock, stock_minimo 
+                FROM productos 
+                WHERE stock <= stock_minimo 
+                AND estado = 1 
+                ORDER BY (stock - stock_minimo) ASC 
+                LIMIT 10
+            : SQLSTATE[42S22]: Column not found: 1054 Unknown column 'codigo' in 'field list'
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(105): PDO->prepare('\r\n             ...')
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(127): Config\Database->query('\r\n             ...', Array)
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Controllers\NotificationController.php(33): Config\Database->fetchAll('\r\n             ...')
+#3 [internal function]: App\Controllers\NotificationController->alertasStock()
+#4 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(351): call_user_func_array(Array, Array)
+#5 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('NotificationCon...', Array)
+#6 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(184): App\Core\Router->dispatch()
+#7 {main}
+[2026-08-30 13:59:31] [ERROR DB] [42S22] Error en consulta SQL: 
+                SELECT id, codigo, nombre, stock, stock_minimo 
+                FROM productos 
+                WHERE stock <= stock_minimo 
+                AND estado = 1 
+                ORDER BY (stock - stock_minimo) ASC 
+                LIMIT 10
+            : SQLSTATE[42S22]: Column not found: 1054 Unknown column 'codigo' in 'field list'
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(105): PDO->prepare('\r\n             ...')
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(127): Config\Database->query('\r\n             ...', Array)
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Controllers\NotificationController.php(33): Config\Database->fetchAll('\r\n             ...')
+#3 [internal function]: App\Controllers\NotificationController->alertasStock()
+#4 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(351): call_user_func_array(Array, Array)
+#5 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('NotificationCon...', Array)
+#6 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(184): App\Core\Router->dispatch()
+#7 {main}
+[2026-08-30 14:02:16] [ERROR DB] [42S22] Error en consulta SQL: 
+                SELECT id, codigo, nombre, stock, stock_minimo 
+                FROM productos 
+                WHERE stock <= stock_minimo 
+                AND estado = 1 
+                ORDER BY (stock - stock_minimo) ASC 
+                LIMIT 10
+            : SQLSTATE[42S22]: Column not found: 1054 Unknown column 'codigo' in 'field list'
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(105): PDO->prepare('\r\n             ...')
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(127): Config\Database->query('\r\n             ...', Array)
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Controllers\NotificationController.php(33): Config\Database->fetchAll('\r\n             ...')
+#3 [internal function]: App\Controllers\NotificationController->alertasStock()
+#4 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(351): call_user_func_array(Array, Array)
+#5 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('NotificationCon...', Array)
+#6 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(184): App\Core\Router->dispatch()
+#7 {main}
+[2026-08-30 14:04:44] [ERROR DB] [42S22] Error en consulta SQL: 
+                SELECT id, codigo, nombre, stock, stock_minimo 
+                FROM productos 
+                WHERE stock <= stock_minimo 
+                AND estado = 1 
+                ORDER BY (stock - stock_minimo) ASC 
+                LIMIT 10
+            : SQLSTATE[42S22]: Column not found: 1054 Unknown column 'codigo' in 'field list'
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(105): PDO->prepare('\r\n             ...')
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(127): Config\Database->query('\r\n             ...', Array)
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Controllers\NotificationController.php(33): Config\Database->fetchAll('\r\n             ...')
+#3 [internal function]: App\Controllers\NotificationController->alertasStock()
+#4 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(351): call_user_func_array(Array, Array)
+#5 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('NotificationCon...', Array)
+#6 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(184): App\Core\Router->dispatch()
+#7 {main}
+[2026-08-30 21:34:56] [ERROR DB] [42S22] Error en consulta SQL: 
+                SELECT id, nombre, stock, stock_minimo 
+                FROM productos 
+                WHERE stock <= stock_minimo 
+                AND estado = 1 
+                ORDER BY (stock - stock_minimo) ASC 
+                LIMIT 10
+            : SQLSTATE[42S22]: Column not found: 1054 Unknown column 'stock' in 'field list'
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(105): PDO->prepare('\r\n             ...')
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(127): Config\Database->query('\r\n             ...', Array)
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Controllers\NotificationController.php(34): Config\Database->fetchAll('\r\n             ...')
+#3 [internal function]: App\Controllers\NotificationController->alertasStock()
+#4 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(351): call_user_func_array(Array, Array)
+#5 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('NotificationCon...', Array)
+#6 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(184): App\Core\Router->dispatch()
+#7 {main}
+[2026-08-30 21:35:12] [ERROR DB] [42S22] Error en consulta SQL: 
+                SELECT id, nombre, stock, stock_minimo 
+                FROM productos 
+                WHERE stock <= stock_minimo 
+                AND estado = 1 
+                ORDER BY (stock - stock_minimo) ASC 
+                LIMIT 10
+            : SQLSTATE[42S22]: Column not found: 1054 Unknown column 'stock' in 'field list'
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(105): PDO->prepare('\r\n             ...')
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(127): Config\Database->query('\r\n             ...', Array)
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Controllers\NotificationController.php(34): Config\Database->fetchAll('\r\n             ...')
+#3 [internal function]: App\Controllers\NotificationController->alertasStock()
+#4 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(351): call_user_func_array(Array, Array)
+#5 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('NotificationCon...', Array)
+#6 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(184): App\Core\Router->dispatch()
+#7 {main}
+[2026-08-30 23:25:02] [ERROR DB] [42S02] Error en consulta SQL: SELECT fecha_vencimiento_cert, DATEDIFF(fecha_vencimiento_cert, CURDATE()) as dias_restantes FROM sunat_config LIMIT 1: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'facturacion_pucallpa.sunat_config' doesn't exist
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(105): PDO->prepare('SELECT fecha_ve...')
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(139): Config\Database->query('SELECT fecha_ve...', Array)
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Controllers\NotificationController.php(36): Config\Database->fetchOne('SELECT fecha_ve...')
+#3 [internal function]: App\Controllers\NotificationController->fetchAll()
+#4 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(351): call_user_func_array(Array, Array)
+#5 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('NotificationCon...', Array)
+#6 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(185): App\Core\Router->dispatch()
+#7 {main}

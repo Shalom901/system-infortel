@@ -1,0 +1,29 @@
+{
+    "name": "facturacion/sistema",
+    "description": "Sistema de Facturación Empresarial - Empresa de Informática Pucallpa",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "vlucas/phpdotenv": "^5.5",
+        "dompdf/dompdf": "^2.0",
+        "phpmailer/phpmailer": "^6.8",
+        "picqer/php-barcode-generator": "^2.4",
+        "phpoffice/phpspreadsheet": "^2.0",
+        "endroid/qr-code": "^5.0",
+        "greenter/greenter": "^4.1",
+        "monolog/monolog": "^3.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "files": [
+            "config/database.php",
+            "config/app.php",
+            "app/Helpers/functions.php"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

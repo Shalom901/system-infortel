@@ -1,0 +1,49 @@
+# =============================================================
+# .htaccess RAÍZ DEL PROYECTO PΛRADISE - DEFENSA OFENSIVA
+# =============================================================
+
+RewriteEngine On
+
+# ----------------------------------------------------------------------
+# 1. EL REFLEJO (Infinite Localhost Loop)
+# Si un bot busca archivos vulnerables comunes, lo redirigimos a su propia máquina.
+# Esto colapsa escáneres ingenuos al crear un bucle de redirección en su propia red.
+# ----------------------------------------------------------------------
+RewriteCond %{REQUEST_URI} ^/(wp-admin|phpmyadmin|admin|\.git|\.env|wp-login\.php) [NC]
+RewriteRule ^(.*)$ http://127.0.0.1/ [R=301,L]
+
+# ----------------------------------------------------------------------
+# 2. DETECCIÓN DE FUERZA BRUTA Y SQLi -> DIRECCIÓN A LA BOMBA
+# Si detectamos inyecciones SQL o scripts de Python (User-Agents maliciosos),
+# no los bloqueamos, los mandamos a "karmabomb.php" para congelar su RAM.
+# ----------------------------------------------------------------------
+RewriteCond %{HTTP_USER_AGENT} (nmap|python|curl|wget|sqlmap|nikto|libwww) [NC,OR]
+RewriteCond %{QUERY_STRING} (UNION.*SELECT|SELECT.*FROM|INSERT.*INTO|DROP.*TABLE|UPDATE.*SET) [NC,OR]
+RewriteCond %{QUERY_STRING} (<|%3C).*script.*(>|%3E) [NC]
+RewriteRule ^(.*)$ public/karmabomb.php [L]
+
+# ----------------------------------------------------------------------
+# SEGURIDAD ESTÁNDAR Y ENRUTAMIENTO NORMAL
+# ----------------------------------------------------------------------
+RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK|OPTIONS|HEAD)
+RewriteRule .* - [F]
+
+<IfModule mod_headers.c>
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# Enrutamiento normal de PΛRADISE
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteCond %{REQUEST_URI} !^/public/karmabomb\.php
+RewriteRule ^(.*)$ public/$1 [L,QSA]
+
+<FilesMatch "\.(env|json|lock|md|gitignore|sql|log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+Options -Indexes
+ServerSignature Off

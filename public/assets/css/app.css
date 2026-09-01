@@ -1,0 +1,33 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.custom-scrollbar::-webkit-scrollbar {
+    height: 4px;
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+
+/* Aplicación global del sistema de tokens */
+    body.app-bg {
+        background-color: var(--color-bg-body);
+        color: var(--color-text-primary);
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Transformación de los contenedores blancos genéricos a contenedores controlados */
+    main > div > .bg-white,
+    .bg-container {
+        background-color: var(--color-bg-container) !important;
+        border-color: var(--color-border) !important;
+        color: var(--color-text-primary);
+    }
