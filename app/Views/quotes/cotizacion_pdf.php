@@ -1,3 +1,4 @@
+<?php $ubicacionQr = $data['ubicacionQr'] ?? null; ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,6 +9,7 @@
         $fechaVencimiento = !empty($cotizacion['fecha_vencimiento']) ? date('M d, Y', strtotime($cotizacion['fecha_vencimiento'])) : '-';
         $monedaStr = ($cotizacion['moneda'] ?? 'PEN') === 'USD' ? 'Dólares (USD)' : 'Soles (PEN)';
         $symbol = ($cotizacion['moneda'] ?? 'PEN') === 'USD' ? 'US$' : 'S/';
+        
     ?>
     <title>Cotización <?= htmlspecialchars($numeroComprobante) ?></title>
     <style>
@@ -33,10 +35,10 @@
         .info-title { font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
         .client-name { font-size: 18px; font-weight: bold; margin: 0 0 5px 0; }
         
-        /* Tabla de productos */
-        .items-table { margin-bottom: 30px; }
-        .items-table th { padding: 12px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        .items-table td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; font-size: 11px; }
+        /* Tabla de productos (Optimizado para ahorrar espacio vertical) */
+        .items-table { margin-bottom: 15px; }
+        .items-table th { padding: 8px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .items-table td { padding: 5px 10px; border-bottom: 1px solid #f1f5f9; font-size: 11px; }
         
         /* Totales y notas */
         .bottom-table { margin-top: 20px; }
@@ -51,8 +53,7 @@
     </style>
 </head>
 <body>
-
-    <!-- ================= HEADER ================= -->
+    
     <table class="header-table">
         <tr>
             <td style="width: 50%; vertical-align: middle;">
@@ -96,7 +97,6 @@
         </tr>
     </table>
 
-    <!-- ================= CLIENTE Y EMPRESA ================= -->
     <table class="info-table">
         <tr>
             <td style="width: 50%; vertical-align: top; padding-right: 20px;">
@@ -108,9 +108,9 @@
                 </div>
             </td>
             <td style="width: 50%; vertical-align: top;">
-                <div class="info-title text-dark">DATOS DEL EMISOR:</div>
+                <div class="info-title text-dark">DATOS DEL EMISOR: </div>
                 <div class="text-gray" style="line-height: 1.6;">
-                    <strong>RUC:</strong> <?= htmlspecialchars($config['ruc'] ?? '-') ?><br>
+                    <strong>RUC:</strong> <?= htmlspecialchars($config['ruc'] ?? '20123456789') ?><br>
                     <?= htmlspecialchars($config['direccion'] ?? 'Pucallpa - Ucayali - Perú') ?><br>
                     Teléfono: <?= htmlspecialchars($config['telefono'] ?? '-') ?><br>
                     Atendido por: <span class="text-dark" style="font-weight: bold;"><?= htmlspecialchars(trim(($cotizacion['usuario_nombre'] ?? '') . ' ' . ($cotizacion['usuario_apellidos'] ?? '')) ?: 'Administrador') ?></span>
@@ -119,7 +119,6 @@
         </tr>
     </table>
 
-    <!-- ================= TABLA DE PRODUCTOS ================= -->
     <table class="items-table">
         <thead>
             <tr>
@@ -160,7 +159,6 @@
         </tbody>
     </table>
 
-    <!-- ================= TOTALES Y OBSERVACIONES ================= -->
     <table class="bottom-table">
         <tr>
             <td style="width: 50%; vertical-align: top;">
@@ -203,9 +201,96 @@
 
     <!-- ================= FOOTER ================= -->
     <div class="footer">
-        <div class="color-primary" style="font-size: 14px; font-weight: bold; margin-bottom: 10px;">¡Gracias por su preferencia!</div>
-        Este documento es una estimación de precios con carácter informativo y no constituye un comprobante de pago válido para efectos tributarios. Los precios y disponibilidad de stock están sujetos a cambios sin previo aviso una vez superada la fecha de validez ("Válida hasta").
-    </div>
+        
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                 <!-- Columna 1: Contacto -->
+                <td style="width: 30%; vertical-align: top; padding-right: 15px;">
+                    <div class="text-dark" style="font-weight: bold; margin-bottom: 5px;">Contáctanos:</div>
+                    Teléfono: +51 966 422 570 <?= htmlspecialchars($config['telefono'] ?? '-') ?><br>
+                    Email: contacto@tuempresa.com<br>
+                    
+                    <div class="text-dark" style="font-weight: bold; margin-bottom: 5px;">Términos y Condiciones:</div>
+                        Representación impresa del comprobante de venta electrónico. Los productos adquiridos están sujetos a las políticas de garantía vigentes. Consulte su documento electrónico en nuestra plataforma web.
+                    
+                </td>
+                
+                <td style="width: 35%; vertical-align: top; padding-left: 15px; padding-right: 15px; border-left: 1px solid #e2e8f0;">
+                    <div class="text-dark" style="font-weight: bold; margin-bottom: 8px;">Cuentas Bancarias:</div>
+                    
+                    <?php
+                        if (!function_exists('getBankIconBase64')) {
+                            function getBankIconBase64($filename, $bgColor, $text) {
+                                $path = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'img' . DIRECTORY_SEPARATOR . $filename;
+                                if (file_exists($path)) {
+                                    // Ajuste de tamaño: height reducido a 10px y max-width para evitar desbordes en Dompdf
+                                    return '<img src="data:image/png;base64,' . base64_encode(file_get_contents($path)) . '" style="height: 10px; max-width: 45px; width: auto; vertical-align: middle; margin-right: 5px;">';
+                                }
+                                return '<span style="background-color: '.$bgColor.'; color: white; font-size: 9px; font-weight: bold; padding: 2px 4px; border-radius: 2px; margin-right: 5px; vertical-align: middle;">'.$text.'</span>';
+                            }
+                        }
+                    ?>
+
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
+                        <tr>
+                            <td style="width: 50%; vertical-align: top; padding-right: 5px;">
+                                <div style="margin-bottom: 0px;">
+                                    <?= getBankIconBase64('bcp.png', '#FF7A00', 'BCP') ?>
+                                    <strong class="text-dark" style="vertical-align: middle;">BCP - Cuenta en soles</strong>
+                                </div>
+                                <div style="padding-left: 2px;">
+                                    N° de Cuenta: 480-2212912029<br>
+                                    CCI: 00248000221291202925
+                                </div>
+                            </td>
+                            
+                            <td style="width: 50%; vertical-align: top; padding-left: 5px;">
+                                <div style="margin-bottom: 0px;">
+                                    <?= getBankIconBase64('bbva.png', '#004481', 'BBVA') ?>
+                                    <strong class="text-dark" style="vertical-align: middle;">BBVA - Cuenta en Soles</strong>
+                                </div>
+                                <div style="padding-left: 2px;">
+                                    N° de Cuenta: 200-3004005006<br>
+                                    CCI: 003-200-03004005006-12
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <!-- YAPE (INFORTEL COMP E.I.R.L) -->
+                    <div>
+                        <div style="margin-bottom: 2px;">
+                            <?= getBankIconBase64('yape.png', '#722F37', 'YAPE') ?>
+                            <strong class="text-dark" style="vertical-align: middle;">Yape - Infortel Comp</strong>
+                        </div>
+                        <div style="padding-left: 2px; font-size: 10px;">
+                            Titular: <strong>INFORTEL COMP E.I.R.L.</strong><br>
+                            <span class="color-primary" style="font-weight: bold;">Cel: +51 966 422 570</span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <!-- Sección Final: Agradecimiento y Código QR -->
+        <table style="width: 100%; margin-top: 20px;">
+            <tr>
+                <td style="width: 50%; vertical-align: bottom;">
+                    <div class="color-primary" style="font-size: 14px; font-weight: bold; margin-left: 15px;">
+                        ¡Gracias por su preferencia!
+                    </div>
+                </td>
+                
+                <td style="width: 50%; text-align: center; vertical-align: bottom;">
+                    <?php if ($ubicacionQr): ?>
+                        <div style="text-align: center; margin-top: 55px; margin-left: 225px;">
+                        <img src="<?= htmlspecialchars($ubicacionQr, ENT_QUOTES, 'UTF-8') ?>" alt="Ubicación de la empresa" style="width: 95px; height: 95px;">
+                        <div class="text-gray" style="margin-top: 5px;">Escanea para ver la ubicación de la empresa</div>
+                    </div>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        </table>
+
+    </div> <!-- Fin del Footer -->
 
 </body>
 </html>

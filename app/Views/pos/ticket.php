@@ -15,6 +15,18 @@ function getTipoComprobante($tipo) {
     }
 }
 
+function getBankIconBase64Ticket($filename, $textoRespaldo) {
+    $path = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'img' . DIRECTORY_SEPARATOR . $filename;
+    
+    if (file_exists($path)) {
+        // filter: grayscale(100%) es la magia para que la ticketera lo imprima nítido
+        return '<img src="data:image/png;base64,' . base64_encode(file_get_contents($path)) . '" style="height: 12px; vertical-align: middle; margin-right: 4px; filter: grayscale(100%);">';
+    }
+    
+    // Si no encuentra la imagen, muestra el texto entre corchetes [BCP]
+    return '<span class="bold">[' . $textoRespaldo . ']</span> ';
+}
+
 function getNombrePagoTicket($metodo) {
     $nombres = [
         'efectivo' => 'Efectivo', 'yape' => 'Yape', 'plin' => 'Plin',
@@ -88,6 +100,30 @@ $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(
         
         .totals-table td {
             padding: 2px 0;
+        }
+        
+        @media print {
+            body {
+                background-color: #fff;
+                padding: 0;
+            }
+            .ticket {
+                box-shadow: none;
+                padding: 0;
+                width: 100%;
+            }
+        }
+
+        .totals-table td {
+            padding: 2px 0;
+        }
+
+        /* ======================================================== */
+        /* FILTRO DE ALTO CONTRASTE PARA IMPRESORA TÉRMICA (NUEVO)  */
+        /* ======================================================== */
+        .ticket img {
+            filter: grayscale(100%) contrast(200%) brightness(80%);
+            image-rendering: pixelated;
         }
         
         @media print {
@@ -195,6 +231,44 @@ $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(
         <?php endif; ?>
         
         <div class="divider"></div>
+
+        <div class="divider"></div>
+        
+       <!-- Cuentas y Canales de Pago (Incluyendo Yape) -->
+        <div class="divider"></div>
+        <div class="mb-2" style="font-size: 11px;">
+            <p class="bold mb-1">MÉTODOS DE PAGO / CANALES:</p>
+            
+            <!-- BCP -->
+            <div style="margin-bottom: 5px;">
+                <p class="bold" style="display: flex; align-items: center;">
+                    <?= getBankIconBase64Ticket('bcp.png', 'BCP') ?>
+                    <span>BCP - Cuenta en Soles</span>
+                </p>
+                <p>Nro: 480-2212912029</p>
+                <p>CCI: 00248000221291202925</p>
+            </div>
+            
+            <!-- Interbank -->
+            <div style="margin-bottom: 5px;">
+                <p class="bold" style="display: flex; align-items: center;">
+                    <?= getBankIconBase64Ticket('interbank.png', 'INT') ?>
+                    <span>Interbank - Cuenta en Soles</span>
+                </p>
+                <p>Nro: 200-3004005006</p>
+                <p>CCI: 003-200-03004005006-12</p>
+            </div>
+
+            <!-- YAPE (INFORTEL COMP E.I.R.L) -->
+            <div>
+                <p class="bold" style="display: flex; align-items: center;">
+                    <?= getBankIconBase64Ticket('yape.png', 'YAPE') ?>
+                    <span>YAPE - INFORTEL COMP</span>
+                </p>
+                <p>Titular: INFORTEL COMP E.I.R.L.</p>
+                <p class="bold">Celular: +51 966 422 570</p>
+            </div>
+        </div>
 
         <?php if ($ubicacionQr): ?>
             <div class="center mb-2">

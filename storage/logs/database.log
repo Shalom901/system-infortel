@@ -226,3 +226,17 @@ Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(105): PDO->pr
 #5 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('NotificationCon...', Array)
 #6 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(185): App\Core\Router->dispatch()
 #7 {main}
+[2026-09-03 08:41:40] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(207): App\Core\Router->dispatch()
+#5 {main}
+[2026-09-03 08:41:53] [ERROR DB] [2002] Error de conexión a base de datos: SQLSTATE[HY000] [2002] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+Traza: #0 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(59): PDO->__construct('mysql:host=127....', 'root', Object(SensitiveParameterValue), Array)
+#1 C:\xampp\htdocs\facturacion-pucallpa\config\database.php(79): Config\Database->__construct()
+#2 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(344): Config\Database::getInstance()
+#3 C:\xampp\htdocs\facturacion-pucallpa\app\Core\Router.php(136): App\Core\Router->executeCallback('AuthController@...', Array)
+#4 C:\xampp\htdocs\facturacion-pucallpa\public\index.php(207): App\Core\Router->dispatch()
+#5 {main}

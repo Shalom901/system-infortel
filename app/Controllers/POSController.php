@@ -320,6 +320,13 @@ class POSController
      *
      * @param int $ventaId ID de la venta
      */
+/**
+     * Genera el PDF del comprobante y lo envía al navegador
+     *
+     * GET /pos/pdf/123
+     *
+     * @param int $ventaId ID de la venta
+     */
     public function printPDF(int $ventaId): void
     {
         $this->requireAuth();
@@ -343,15 +350,47 @@ class POSController
         include VIEWS_PATH . '/pos/comprobante_pdf.php';
         $html = ob_get_clean();
 
-        // Usar DomPDF o TCPDF si está disponible
+        // Usar DomPDF si está disponible
         if (class_exists('Dompdf\Dompdf')) {
             $dompdf = new \Dompdf\Dompdf();
             $dompdf->loadHtml($html);
             $dompdf->setPaper('A4', 'portrait');
             $dompdf->render();
-            $dompdf->stream("comprobante_{$venta['numero_comprobante']}.pdf", [
+
+            // ==========================================
+            // LÓGICA DE NOMBRE DINÁMICO DEL PDF
+            // ==========================================
+            
+            // 1. Determinar el tipo de comprobante para el nombre
+            $tipoComprobante = 'Ticket';
+            if ($venta['tipo_comprobante'] === '01') {
+                $tipoComprobante = 'Factura';
+            } elseif ($venta['tipo_comprobante'] === '03') {
+                $tipoComprobante = 'Boleta';
+            }
+
+            // 2. Extraer y limpiar el nombre del cliente (usando el helper slug que tienes en functions.php)
+            $nombreClienteOriginal = $venta['cliente_nombre'] ?? $venta['razon_social'] ?? 'Cliente_General';
+            $nombreClienteSlug = slug($nombreClienteOriginal);
+
+            // 3. Obtener el número de comprobante asegurando el formato correcto (ej. F001-00000123)
+            $numeroComprobante = $venta['numero_comprobante'] ?? 
+                ($venta['serie'] . '-' . str_pad((string)($venta['numero'] ?? 0), 8, '0', STR_PAD_LEFT));
+
+            // 4. Armar el nombre final del archivo (Ej: Factura_F001-00000123_juan-perez.pdf)
+            $nombreArchivoFinal = sprintf('%s_%s_%s.pdf', 
+                $tipoComprobante, 
+                $numeroComprobante, 
+                $nombreClienteSlug
+            );
+
+            // Enviar al navegador con el nombre dinámico. 
+            // Attachment => false indica que el navegador intente abrirlo en una nueva pestaña
+            // en lugar de forzar la ventana de "Guardar como..." inmediatamente.
+            $dompdf->stream($nombreArchivoFinal, [
                 'Attachment' => false,
             ]);
+            
         } else {
             // Fallback: mostrar HTML para impresión
             header('Content-Type: text/html; charset=UTF-8');

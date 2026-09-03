@@ -6,7 +6,9 @@ namespace App\Controllers;
 
 use PDO;
 use App\Models\QuoteModel;
-
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
+use Throwable; // Opcional, pero recomendado ya que usas \Throwable en el bloque catch
 class QuoteController
 {
     private PDO $db;
@@ -16,6 +18,36 @@ class QuoteController
     {
         $this->db    = $db;
         $this->model = new QuoteModel($db);
+    }
+
+    /** Genera el QR de ubicación para las representaciones impresas. */
+    private function generarQrUbicacion(array $config): ?string
+    {
+        $latitud = trim((string)($_ENV['EMPRESA_LATITUD'] ?? ''));
+        $longitud = trim((string)($_ENV['EMPRESA_LONGITUD'] ?? ''));
+        if (is_numeric($latitud) && is_numeric($longitud)) {
+            $consulta = $latitud . ',' . $longitud;
+        } else {
+            $direccion = trim(implode(', ', array_filter([
+                $config['direccion'] ?? '',
+                $config['distrito'] ?? '',
+                $config['provincia'] ?? '',
+                $config['departamento'] ?? '',
+            ])));
+            if ($direccion === '') {
+                return null;
+            }
+            $consulta = $direccion;
+        }
+
+        $urlMaps = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($consulta);
+
+        try {
+            $qrCode = QrCode::create($urlMaps)->setSize(260)->setMargin(10);
+            return (new PngWriter())->write($qrCode)->getDataUri();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public function index(): void
@@ -158,6 +190,20 @@ class QuoteController
         }
 
         $config = $this->getEmpresaConfig();
+
+        // ========================================================
+        // 1. DATA BINDING (Inyección de dependencias a la vista)
+        // ========================================================
+        // NOTA TÉCNICA: Si el método generarQrUbicacion() no existe en 
+        // QuoteController, debes copiarlo desde POSController o pasar
+        // una ruta estática directa (ej. '/assets/img/qr_ubicacion.png')
+        $data = [
+            'ubicacionQr' => method_exists($this, 'generarQrUbicacion') 
+                                ? $this->generarQrUbicacion($config) 
+                                : '/assets/img/qr_ubicacion.png', // Fallback estático
+        ];
+
+        // Compilación de la vista
         ob_start();
         include VIEWS_PATH . '/quotes/cotizacion_pdf.php';
         $html = ob_get_clean();
@@ -167,10 +213,29 @@ class QuoteController
             $dompdf->loadHtml($html, 'UTF-8');
             $dompdf->setPaper('A4', 'portrait');
             $dompdf->render();
-            $dompdf->stream('cotizacion_' . $cotizacion['numero'] . '.pdf', ['Attachment' => false]);
+
+            // ========================================================
+            // 2. NOMENCLATURA DINÁMICA DEL ARCHIVO (Slugification)
+            // ========================================================
+            $nombreClienteOriginal = $cotizacion['cliente_nombre'] ?? 'Cliente_General';
+            
+            // Requerimos que la función slug() esté cargada globalmente (helpers)
+            $nombreClienteSlug = function_exists('slug') ? slug($nombreClienteOriginal) : preg_replace('/[^a-z0-9\-]/', '-', strtolower(trim($nombreClienteOriginal)));
+            
+            $numeroCotizacion = $cotizacion['numero'] ?? 'S-N';
+
+            // Formato resultante: Cotizacion_COT-001_empresa-sac.pdf
+            $nombreArchivoFinal = sprintf('Cotizacion_%s_%s.pdf', 
+                $numeroCotizacion, 
+                $nombreClienteSlug
+            );
+
+            // Despacho del payload binario al cliente
+            $dompdf->stream($nombreArchivoFinal, ['Attachment' => false]);
             return;
         }
 
+        // Fallback en caso de carecer de la librería Dompdf
         header('Content-Type: text/html; charset=UTF-8');
         echo $html;
     }
@@ -180,18 +245,22 @@ class QuoteController
         $config = [];
         try {
             $stmt = $this->db->query("SELECT clave, valor FROM configuracion WHERE clave LIKE 'empresa_%'");
-            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-                $config[str_replace('empresa_', '', $row['clave'])] = $row['valor'];
+            foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+                $key = str_replace('empresa_', '', $row['clave']);
+                // Validación estricta: Solo inyectar si el valor no está vacío
+                if (trim((string)$row['valor']) !== '') {
+                    $config[$key] = $row['valor'];
+                }
             }
-        } catch (\Exception) {
-            // Los valores de entorno cubren instalaciones sin tabla de configuración.
+        } catch (\Exception $e) {
+            // Silencioso para permitir ejecución offline/fallback
         }
 
         return $config + [
             'razon_social' => $_ENV['EMPRESA_NOMBRE'] ?? 'EMPRESA',
-            'ruc'          => $_ENV['EMPRESA_RUC'] ?? '-',
-            'direccion'    => $_ENV['EMPRESA_DIR'] ?? '',
-            'telefono'     => $_ENV['EMPRESA_TEL'] ?? '',
+            'ruc'          => $_ENV['EMPRESA_RUC'] ?? '20123456789',
+            'direccion'    => $_ENV['EMPRESA_DIR'] ?? 'Pucallpa - Ucayali - Perú',
+            'telefono'     => $_ENV['EMPRESA_TEL'] ?? '-',
         ];
     }
 }
