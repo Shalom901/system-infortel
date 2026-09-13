@@ -9,7 +9,7 @@ declare(strict_types=1);
  * =============================================================
  *
  * Define constantes globales, configuración de zona horaria,
- * roles de usuario, estados de comprobantes y tipos de documentos.
+ * roles de usuario, estados de comprobantes y tipos de docDumentos.
  */
 
 // -----------------------------------------------
@@ -24,7 +24,7 @@ setlocale(LC_TIME, 'es_PE.UTF-8');
 // -----------------------------------------------
 define('APP_VERSION',     '1.0.0');
 define('APP_YEAR',        (int) date('Y'));
-define('APP_NAME',        $_ENV['APP_NAME'] ?? 'Sistema de Facturación');
+define('APP_NAME',        $_ENV['APP_NAME'] ?? 'INFORTEL COMP E.I.R.L');
 define('APP_URL',         rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/'));
 define('APP_ENV',         $_ENV['APP_ENV']   ?? 'production');
 define('APP_DEBUG',       filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN));

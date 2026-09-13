@@ -263,22 +263,100 @@ if (!function_exists('formatTrend')) {
      ===================================================================== -->
 <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
 
-    <!-- ---- Gráfico 3: Ventas por Hora (Barras) ---- -->
-    <div class="xl:col-span-3 bg-white dark:bg-slate-800/80 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700/50 p-6">
-        <div class="flex items-center justify-between mb-5">
-            <div>
-                <h2 class="text-base font-bold text-slate-800 dark:text-white">Ventas por Hora del Día</h2>
-                <p class="text-xs text-slate-400 mt-0.5">¿Cuándo se vende más y cuándo hay menor actividad?</p>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 text-xs font-semibold px-3 py-1.5 rounded-full">
-                    <i class="fa-solid fa-clock text-xs"></i> Pico: <span id="peakHourLabel"><?= htmlspecialchars($hourlySales['best']['label'] ?? '—') ?></span>
+    <!-- ---- Tarjeta Combinada: Ventas por Hora + Top Productos Más Vendidos ---- -->
+    <div class="xl:col-span-3 bg-white dark:bg-slate-900/70 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-800 p-6 flex flex-col justify-between transition-colors">
+        
+        <!-- PARTE SUPERIOR: Gráfico de Horas Compacto -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-amber-500"></i> Ventas por Hora del Día
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Distribución de ingresos a lo largo de la jornada comercial</p>
+                </div>
+                <span class="inline-flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-xs font-bold px-3 py-1 rounded-full border border-amber-200/60 dark:border-amber-800/40">
+                    <i class="fa-solid fa-bolt text-xs"></i> Pico: <span id="peakHourLabel"><?= htmlspecialchars($hourlySales['best']['label'] ?? '—') ?></span>
                 </span>
             </div>
+
+            <!-- Gráfico de barras ajustado a 180px -->
+            <div class="relative" style="height: 180px;">
+                <canvas id="hourlyChart"></canvas>
+            </div>
         </div>
-        <div class="relative" style="height: 260px;">
-            <canvas id="hourlyChart"></canvas>
+
+        <!-- PARTE INFERIOR: Top Productos Más Vendidos con Barras de Progreso -->
+        <div class="pt-5 border-t border-slate-100 dark:border-slate-800/80">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-fire text-rose-500"></i> Productos de Mayor Rotación
+                </h3>
+                <span class="text-xs text-slate-400 font-medium">Top 4 más vendidos</span>
+            </div>
+
+            <?php
+                // Cálculo de máximos para la escala de las barras
+                $maxVendido = !empty($topProducts) ? max(array_column($topProducts, 'total_vendido')) : 1;
+                if ($maxVendido <= 0) $maxVendido = 1;
+            ?>
+
+            <?php if (empty($topProducts)): ?>
+                <div class="py-6 text-center text-slate-400 dark:text-slate-500 text-xs">
+                    <i class="fa-solid fa-boxes-stacked text-2xl mb-2 opacity-30 block"></i>
+                    Aún no hay suficientes ventas registradas para calcular los productos estrella.
+                </div>
+            <?php else: ?>
+                <div class="space-y-3.5">
+                    <?php 
+                    $coloresBarra = [
+                        'from-sky-500 to-blue-600',
+                        'from-emerald-500 to-teal-600',
+                        'from-violet-500 to-purple-600',
+                        'from-amber-500 to-orange-600',
+                    ];
+                    foreach ($topProducts as $idx => $prod): 
+                        $porcentaje = min(100, round(((float)$prod['total_vendido'] / $maxVendido) * 100));
+                        $gradiente = $coloresBarra[$idx % count($coloresBarra)];
+                    ?>
+                    <div>
+                        <!-- Fila con Nombre, Código, Cantidad y Monto Total -->
+                        <div class="flex items-center justify-between text-xs mb-1.5">
+                            <div class="flex items-center gap-2 min-w-0 pr-2">
+                                <span class="w-5 h-5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono font-bold flex items-center justify-center text-[10px] shrink-0">
+                                    #<?= $idx + 1 ?>
+                                </span>
+                                <span class="font-bold text-slate-800 dark:text-slate-200 truncate">
+                                    <?= htmlspecialchars($prod['nombre']) ?>
+                                </span>
+                                <?php if (!empty($prod['codigo_interno'])): ?>
+                                <span class="hidden sm:inline-block text-[10px] text-slate-400 font-mono">
+                                    (<?= htmlspecialchars($prod['codigo_interno']) ?>)
+                                </span>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="flex items-center gap-3 shrink-0">
+                                <span class="font-semibold text-slate-500 dark:text-slate-400">
+                                    <strong class="text-slate-800 dark:text-white"><?= number_format((float)$prod['total_vendido'], 0) ?></strong> uds
+                                </span>
+                                <span class="font-bold text-sky-600 dark:text-sky-400 min-w-[75px] text-right">
+                                    <?= formatMoney((float)$prod['total_monto']) ?>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Barra de Progreso Visual con Gradiente -->
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden shadow-inner">
+                            <div class="h-full rounded-full bg-gradient-to-r <?= $gradiente ?> transition-all duration-700 ease-out" 
+                                 style="width: <?= $porcentaje ?>%;"></div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
+
     </div>
 
     <!-- ---- Ventas Recientes ---- -->
@@ -301,7 +379,8 @@ if (!function_exists('formatTrend')) {
             </a>
         </div>
         <?php else: ?>
-        <div class="overflow-x-auto flex-1 -mx-2">
+        <!-- Agrega max-h-[380px] overflow-y-auto custom-scrollbar -->
+        <div class="overflow-x-auto flex-1 -mx-2 max-h-[380px] overflow-y-auto custom-scrollbar">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-slate-100 dark:border-slate-700/50">
@@ -416,6 +495,7 @@ if (!function_exists('formatTrend')) {
     }
 
     // ─── CREATE TREND CHART (LÍNEA CON ÁREA) ─────────────────────────
+// ─── CREATE TREND CHART (LÍNEA CON GRADIENTE DESVANECIDO PREMIUM) ───
     function createTrendChart(data) {
         const ctx = document.getElementById('trendChart');
         if (!ctx) return null;
@@ -424,11 +504,19 @@ if (!function_exists('formatTrend')) {
         const labels = data.labels || [];
         const values = data.data || [];
         const dark = isDarkMode();
+        const canvas = ctx.getContext('2d');
 
-        // Calcular gradiente
-        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 280);
-        gradient.addColorStop(0, dark ? 'rgba(14, 165, 233, 0.25)' : COLORS.trend.fillTop);
-        gradient.addColorStop(1, dark ? 'rgba(14, 165, 233, 0.02)' : COLORS.trend.fill);
+        // Gradiente vertical: de azul vibrante arriba a 100% transparente abajo
+        const gradient = canvas.createLinearGradient(0, 10, 0, 260);
+        if (dark) {
+            gradient.addColorStop(0, 'rgba(14, 165, 233, 0.40)');   // Azul neón arriba
+            gradient.addColorStop(0.5, 'rgba(14, 165, 233, 0.10)'); // Transición media
+            gradient.addColorStop(1, 'rgba(14, 165, 233, 0.00)');   // Completamente transparente abajo
+        } else {
+            gradient.addColorStop(0, 'rgba(14, 165, 233, 0.45)');   // Azul cielo suave arriba
+            gradient.addColorStop(0.5, 'rgba(14, 165, 233, 0.12)'); // Transición media
+            gradient.addColorStop(1, 'rgba(14, 165, 233, 0.00)');   // Completamente transparente abajo
+        }
 
         trendChart = new Chart(ctx, {
             type: 'line',
@@ -438,18 +526,20 @@ if (!function_exists('formatTrend')) {
                     label: 'Ventas (S/)',
                     data: values,
                     backgroundColor: gradient,
-                    borderColor: COLORS.trend.line,
-                    borderWidth: 2.5,
-                    pointBackgroundColor: values.map((v, i) => 
-                        i === values.length - 1 ? COLORS.trend.pointHover : COLORS.trend.point
-                    ),
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: values.map((v, i) => i === values.length - 1 ? 5 : 3),
-                    pointHoverRadius: 7,
-                    pointHoverBackgroundColor: COLORS.trend.pointHover,
+                    borderColor: '#0284c7', // Azul nítido
+                    borderWidth: 3,
                     fill: true,
-                    tension: 0.35,
+                    tension: 0.4, // Curvatura orgánica suave (efecto spline)
+                    
+                    // Puntos limpios: ocultos en reposo, aparecen con efecto al pasar el cursor
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#0284c7',
+                    pointHoverBackgroundColor: '#0284c7',
+                    pointBorderColor: '#ffffff',
+                    pointHoverBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointHoverBorderWidth: 3,
                 }]
             },
             options: {
@@ -464,12 +554,13 @@ if (!function_exists('formatTrend')) {
                     tooltip: {
                         backgroundColor: dark ? '#1e293b' : '#0f172a',
                         titleColor: '#94a3b8',
-                        bodyColor: '#f8fafc',
-                        padding: 14,
-                        cornerRadius: 12,
-                        boxPadding: 6,
+                        bodyColor: '#38bdf8', // Monto resaltado en celeste
+                        bodyFont: { weight: 'bold', size: 13 },
+                        padding: 12,
+                        cornerRadius: 10,
+                        displayColors: false, // Ocultar cuadro de color para mayor limpieza
                         callbacks: {
-                            label: ctx => ' S/ ' + Number(ctx.parsed.y).toLocaleString('es-PE', {minimumFractionDigits: 2})
+                            label: ctx => 'Venta: S/ ' + Number(ctx.parsed.y).toLocaleString('es-PE', { minimumFractionDigits: 2 })
                         }
                     }
                 },
@@ -479,20 +570,20 @@ if (!function_exists('formatTrend')) {
                         ticks: { 
                             color: dark ? '#64748b' : '#94a3b8', 
                             font: { size: 10 },
-                            maxTicksLimit: 15,
-                            maxRotation: 45
+                            maxTicksLimit: 12,
+                            maxRotation: 0 // Etiquetas horizontales sin inclinación forzada
                         }
                     },
                     y: {
                         grid: { 
-                            color: dark ? 'rgba(148, 163, 184, 0.06)' : COLORS.trend.grid, 
+                            color: dark ? 'rgba(148, 163, 184, 0.06)' : 'rgba(148, 163, 184, 0.12)', 
                             drawBorder: false 
                         },
                         ticks: {
                             color: dark ? '#64748b' : '#94a3b8',
                             font: { size: 10 },
                             callback: v => 'S/ ' + Number(v).toLocaleString('es-PE'),
-                            maxTicksLimit: 8
+                            maxTicksLimit: 6
                         },
                         beginAtZero: true
                     }
@@ -502,7 +593,6 @@ if (!function_exists('formatTrend')) {
 
         return trendChart;
     }
-
     // ─── CREATE PAYMENT CHART (DOUGHNUT) ──────────────────────────────
     function createPaymentChart(data) {
         destroyChart(paymentChart);

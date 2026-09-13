@@ -36,7 +36,9 @@ class CategoryController
         if (empty($_SESSION['user_id'])) { redirect('/'); return; }
 
         $nombre      = trim($_POST['nombre'] ?? '');
+        $codigo      = trim($_POST['codigo'] ?? '');
         $descripcion = trim($_POST['descripcion'] ?? '');
+        $parentId    = !empty($_POST['parent_id']) ? (int)$_POST['parent_id'] : null;
 
         if ($nombre === '') {
             $_SESSION['flash'] = ['type' => 'error', 'message' => 'El nombre es requerido.'];
@@ -44,8 +46,25 @@ class CategoryController
             return;
         }
 
-        $this->model->create(['nombre' => $nombre, 'descripcion' => $descripcion]);
-        $_SESSION['flash'] = ['type' => 'success', 'message' => 'Categoría creada exitosamente.'];
+        try {
+            $data = [
+                'nombre'      => $nombre,
+                'descripcion' => $descripcion,
+            ];
+
+            if ($codigo !== '') {
+                $data['codigo'] = $codigo; // 👈 Guarda el código escrito (ej: CAT06)
+            }
+            if ($parentId) {
+                $data['parent_id'] = $parentId;
+            }
+
+            $this->model->create($data);
+            $_SESSION['flash'] = ['type' => 'success', 'message' => 'Categoría creada exitosamente.'];
+        } catch (\Throwable $e) {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'Error al crear: ' . $e->getMessage()];
+        }
+
         redirect('/categorias');
     }
 

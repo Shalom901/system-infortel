@@ -13,13 +13,16 @@ foreach ($categorias as $cat) {
 }
 ?>
 
+<!-- Agrega data-turbo="false" al formulario -->
+<form action="/categorias/guardar" method="POST" data-turbo="false"></form>
+
 <!-- =====================================================================
      PAGE HEADER
      ===================================================================== -->
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
     <div>
         <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 transition-colors">
-            <i class="fa-solid fa-tags text-violet-500 mr-2"></i>Categorías
+            <i class="fa-solid fa-tags text-violet-500 mr-2"></i>Lista de categorias
         </h1>
         <p class="text-slate-500 dark:text-slate-400 text-sm mt-0.5 transition-colors"><?= count($categorias) ?> categoría(s) registrada(s)</p>
     </div>

@@ -1,4 +1,3 @@
-<div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto" data-turbo="false">
 
 <?php
 $total        = $total        ?? 0;
@@ -7,14 +6,14 @@ $totalPaginas = $totalPaginas ?? 1;
 $productos    = $productos    ?? [];
 $categorias   = $categorias   ?? [];
 $filtros      = $filtros      ?? [];
-$titulo       = $titulo       ?? 'Productos';
+$title       = $title       ?? 'Productos';
 ?>
 
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
     <div>
         <div class="flex items-center gap-3">
             <h1 class="text-2xl font-bold text-slate-800 dark:text-white">
-                <i class="fa-solid fa-boxes-stacked text-sky-500 mr-2"></i><?= htmlspecialchars($titulo) ?>
+                <i class="fa-solid fa-boxes-stacked text-sky-500 mr-2"></i>Lista de productos
             </h1>
             <?php if ($total > 0): ?>
             <span class="inline-flex items-center gap-1.5 bg-sky-50 dark:bg-sky-500/10 text-sky-600 text-xs font-semibold px-2.5 py-1 rounded-full border border-sky-200 dark:border-sky-500/20">

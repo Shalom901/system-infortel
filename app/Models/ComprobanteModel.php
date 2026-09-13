@@ -173,6 +173,150 @@ class ComprobanteModel
         return $stmt->execute();
     }
 
+/**
+     * Obtiene el listado de comprobantes con filtros avanzados para la gestión SUNAT.
+     * 
+     * @param array $filters Filtros: fecha_desde, fecha_hasta, tipo_comprobante, estado, busqueda, export, limit, offset.
+     * @return array
+     */
+    public function getListado(array $filters = []): array
+    {
+        $where = ['1=1'];
+        $params = [];
+
+        if (!empty($filters['fecha_desde'])) {
+            $where[] = "v.fecha_emision >= :desde";
+            $params[':desde'] = $filters['fecha_desde'];
+        }
+        if (!empty($filters['fecha_hasta'])) {
+            $where[] = "v.fecha_emision <= :hasta";
+            $params[':hasta'] = $filters['fecha_hasta'];
+        }
+        if (!empty($filters['tipo_comprobante'])) {
+            $where[] = "ce.tipo_comprobante = :tipo";
+            $params[':tipo'] = $filters['tipo_comprobante'];
+        }
+
+        // --- FILTRO DE ESTADO SUNAT CORREGIDO ---
+        if (isset($filters['estado']) && $filters['estado'] !== '') {
+            $mapEstados = [
+                '1' => 'pendiente',
+                '2' => 'enviado',
+                '3' => 'aceptado',
+                '4' => 'rechazado'
+            ];
+            $estadoValor = $mapEstados[$filters['estado']] ?? $filters['estado'];
+
+            $where[] = "ce.estado_sunat = :estado";
+            $params[':estado'] = $estadoValor;
+        }
+
+        if (!empty($filters['busqueda'])) {
+            $where[] = "(CONCAT(ce.serie, '-', ce.numero) LIKE :search OR c.razon_social LIKE :search2 OR c.numero_doc LIKE :search3)";
+            $search = "%" . $filters['busqueda'] . "%";
+            $params[':search']  = $search;
+            $params[':search2'] = $search;
+            $params[':search3'] = $search;
+        }
+
+        $sql = "SELECT ce.*, 
+                       ce.estado_sunat AS estado,
+                       ce.codigo_respuesta AS sunat_codigo,
+                       v.fecha_emision AS fecha_emision_real, 
+                       v.total_pen AS total, 
+                       v.igv, 
+                       v.subtotal_gravado AS subtotal, 
+                       v.moneda,
+                       COALESCE(c.razon_social, CONCAT(c.nombres, ' ', c.apellidos), 'Cliente General') AS cliente_nombre, 
+                       c.numero_doc AS cliente_doc,
+                       c.tipo_doc AS cliente_tipo_doc
+                FROM comprobantes_electronicos ce
+                INNER JOIN ventas v ON ce.venta_id = v.id
+                LEFT JOIN clientes c ON v.cliente_id = c.id
+                WHERE " . implode(' AND ', $where) . "
+                ORDER BY v.fecha_emision DESC, ce.id DESC";
+        
+        if (empty($filters['export'])) {
+            $limit  = (int)($filters['limit'] ?? 50);
+            $offset = (int)($filters['offset'] ?? 0);
+            $sql .= " LIMIT $limit OFFSET $offset";
+        }
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $k => $v) {
+                $stmt->bindValue($k, $v);
+            }
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("ComprobanteModel::getListado - Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Cuenta el total de comprobantes bajo los filtros actuales (para paginación).
+     */
+    public function countListado(array $filters = []): int
+    {
+        $where = ['1=1'];
+        $params = [];
+
+        if (!empty($filters['fecha_desde'])) {
+            $where[] = "v.fecha_emision >= :desde";
+            $params[':desde'] = $filters['fecha_desde'];
+        }
+        if (!empty($filters['fecha_hasta'])) {
+            $where[] = "v.fecha_emision <= :hasta";
+            $params[':hasta'] = $filters['fecha_hasta'];
+        }
+        if (!empty($filters['tipo_comprobante'])) {
+            $where[] = "ce.tipo_comprobante = :tipo";
+            $params[':tipo'] = $filters['tipo_comprobante'];
+        }
+
+        // --- FILTRO DE ESTADO SUNAT CORREGIDO ---
+        if (isset($filters['estado']) && $filters['estado'] !== '') {
+            $mapEstados = [
+                '1' => 'pendiente',
+                '2' => 'enviado',
+                '3' => 'aceptado',
+                '4' => 'rechazado'
+            ];
+            $estadoValor = $mapEstados[$filters['estado']] ?? $filters['estado'];
+
+            $where[] = "ce.estado_sunat = :estado";
+            $params[':estado'] = $estadoValor;
+        }
+
+        if (!empty($filters['busqueda'])) {
+            $where[] = "(CONCAT(ce.serie, '-', ce.numero) LIKE :search OR c.razon_social LIKE :search2 OR c.numero_doc LIKE :search3)";
+            $search = "%" . $filters['busqueda'] . "%";
+            $params[':search']  = $search;
+            $params[':search2'] = $search;
+            $params[':search3'] = $search;
+        }
+
+        $sql = "SELECT COUNT(*) 
+                FROM comprobantes_electronicos ce
+                INNER JOIN ventas v ON ce.venta_id = v.id
+                LEFT JOIN clientes c ON v.cliente_id = c.id
+                WHERE " . implode(' AND ', $where);
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $k => $v) {
+                $stmt->bindValue($k, $v);
+            }
+            $stmt->execute();
+            return (int)$stmt->fetchColumn();
+        } catch (PDOException $e) {
+            error_log("ComprobanteModel::countListado - Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
     // =========================================================================
     // CONSULTAS POR VENTA
     // =========================================================================
@@ -287,7 +431,7 @@ class ComprobanteModel
     public function getBoletasPendientesRC(string $fecha): array
     {
         $sql = "SELECT ce.*, v.total, v.igv, v.subtotal, v.moneda,
-                       v.fecha AS fecha_emision
+                       v.fecha_emision
                 FROM comprobantes_electronicos ce
                 INNER JOIN ventas v ON ce.venta_id = v.id
                 WHERE ce.tipo_comprobante = '03'

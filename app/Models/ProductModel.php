@@ -284,6 +284,7 @@ class ProductModel
             'precio_venta_pen'       => 'precio_venta_pen',
             'precio_venta_usd'       => 'precio_venta_usd',
             'precio_mayorista_pen'   => 'precio_mayorista_pen',
+            'stock_actual'           => 'stock_actual', // 👈 AGREGADO: Permite actualizar el inventario disponible
             'stock_minimo'           => 'stock_minimo',
             'stock_maximo'           => 'stock_maximo',
             'aplica_igv'             => 'aplica_igv',
@@ -294,7 +295,7 @@ class ProductModel
 
         foreach ($fieldMap as $dataKey => $dbColumn) {
             if (array_key_exists($dataKey, $data)) {
-                $fields[]          = "{$dbColumn} = :{$dbColumn}";
+                $fields[]               = "{$dbColumn} = :{$dbColumn}";
                 $params[":{$dbColumn}"] = $data[$dataKey];
             }
         }
@@ -304,7 +305,9 @@ class ProductModel
         }
 
         $fields[] = 'updated_at = NOW()';
-        $sql      = 'UPDATE productos SET ' . implode(', ', $fields) . ' WHERE id = :id AND activo = 1';
+        
+        // Se retiró "AND activo = 1" para permitir reactivar productos que estaban en 0 o inactivos
+        $sql = 'UPDATE productos SET ' . implode(', ', $fields) . ' WHERE id = :id';
 
         $stmt = $this->db->prepare($sql);
         return $stmt->execute($params);

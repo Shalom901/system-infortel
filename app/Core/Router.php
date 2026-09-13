@@ -245,6 +245,8 @@ class Router
         return preg_replace('#/+#', '/', $uri) ?: '/';
     }
 
+    
+
     /**
      * Ejecutar los middlewares asociados a la ruta.
      *
@@ -281,6 +283,10 @@ class Router
                 // Middleware de rate limit para login
                 $mw === 'throttle:login'
                     => (new RateLimitMiddleware())->handle('login'),
+
+                // Rutas de Gestión SUNAT
+                $mw === 'sunat.listado'
+                    => (new RoleMiddleware())->handle(['admin', 'vendedor']),
 
                 // Middleware con parámetro de rol personalizado: 'role:admin,vendedor'
                 str_starts_with($mw, 'role:')

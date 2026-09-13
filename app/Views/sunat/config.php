@@ -6,21 +6,31 @@ $puedeEnviarSunat = isAdmin() || isVendedor();
 <div class="space-y-5">
 
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
             <h2 class="text-xl font-bold text-gray-800 dark:text-white">Configuración SUNAT</h2>
-            <p class="text-sm text-gray-500">Administra credenciales, envíos y monitoreo de facturación electrónica</p>
+            <p class="text-sm text-gray-500 dark:text-slate-400">Administra credenciales, envíos y monitoreo de facturación electrónica</p>
         </div>
-        <?php if ($puedeAdministrarSunat): ?>
-        <div class="flex gap-2">
-            <button onclick="testSunatConnection()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+
+        <div class="flex flex-wrap items-center gap-2">
+            <!-- 1. Botón disponible para TODOS (Vendedor y Administrador) -->
+            <a href="<?= baseUrl('sunat/listado') ?>" 
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 shadow-sm hover:-translate-y-0.5">
+                <i class="fa-solid fa-list-check"></i> Gestión y Filtros
+            </a>
+
+            <!-- 2. Opciones técnicas exclusivas del Administrador -->
+            <?php if ($puedeAdministrarSunat): ?>
+            <button type="button" onclick="testSunatConnection()" 
+                    class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 shadow-sm hover:-translate-y-0.5">
                 <i class="fa-solid fa-plug"></i> Probar Conexión
             </button>
-            <button onclick="certInfo()" class="bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+            <button type="button" onclick="certInfo()" 
+                    class="bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 shadow-sm hover:-translate-y-0.5">
                 <i class="fa-solid fa-certificate"></i> Certificado
             </button>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
     </div>
 
     <!-- Stats Cards -->
@@ -271,6 +281,39 @@ $puedeEnviarSunat = isAdmin() || isVendedor();
 </div>
 
 <script>
+// ========================================================
+// NOTIFICACIÓN FLASH / TOAST EN LA ESQUINA SUPERIOR DERECHA
+// ========================================================
+function toastSUNAT(title, text = '', icon = 'success') {
+    if (typeof Swal !== 'undefined') {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end', // 👈 Esquina superior derecha
+            showConfirmButton: false, // 👈 CERO botones de "Aceptar" ni "Cerrar"
+            timer: 3500, // 👈 Desaparece sola en 3.5 segundos
+            timerProgressBar: true
+        });
+        Toast.fire({ icon, title, text });
+    } else {
+        // Fallback flotante si no estuviera cargado Swal
+        const notif = document.createElement('div');
+        notif.className = `fixed top-5 right-5 z-[9999] px-4 py-3 rounded-2xl shadow-2xl text-white text-xs font-bold transition-all duration-300 flex items-center gap-2.5 ${icon === 'success' ? 'bg-emerald-600' : 'bg-rose-600'}`;
+        notif.innerHTML = `
+            <i class="fa-solid ${icon === 'success' ? 'fa-circle-check' : 'fa-circle-xmark'} text-base"></i>
+            <div>
+                <div>${title}</div>
+                <div class="font-normal text-[11px] opacity-90">${text}</div>
+            </div>
+        `;
+        document.body.appendChild(notif);
+        setTimeout(() => {
+            notif.style.opacity = '0';
+            notif.style.transform = 'translateY(-10px)';
+            setTimeout(() => notif.remove(), 300);
+        }, 3500);
+    }
+}
+
 function submitFormAjax(event, url) {
     event.preventDefault();
     const form = event.target;
@@ -279,8 +322,8 @@ function submitFormAjax(event, url) {
     const btnText = document.getElementById('btnText');
 
     btn.disabled = true;
-    spinner.classList.remove('hidden');
-    btnText.textContent = 'Guardando...';
+    if (spinner) spinner.classList.remove('hidden');
+    if (btnText) btnText.textContent = 'Guardando...';
 
     fetch(url, {
         method: 'POST',
@@ -306,10 +349,13 @@ function closeResultModal() {
     document.getElementById('resultModal').classList.add('hidden');
 }
 
+// 1. Enviar comprobante individual con Toast (SIN VENTANAS MOLESTAS)
 function enviarComprobante(ventaId) {
     const btn = event.target.closest('button');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>';
+    }
 
     fetch('<?= baseUrl('sunat/enviar') ?>', {
         method: 'POST',
@@ -321,50 +367,49 @@ function enviarComprobante(ventaId) {
     })
     .then(res => res.json())
     .then(data => {
-        let html = '';
         if (data.success) {
-            html = `<div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <p class="text-green-700 dark:text-green-400 font-medium"><i class="fa-solid fa-check-circle"></i> ¡Envío exitoso!</p>
-                        <p class="text-green-600 dark:text-green-300 mt-1">${data.message}</p>
-                        ${data.codigo ? `<p class="text-xs text-gray-500 mt-1">Código respuesta: ${data.codigo}</p>` : ''}
-                    </div>`;
-            // Actualizar fila
+            // Notificación elegante en la esquina superior derecha
+            toastSUNAT('¡Envío exitoso!', data.message || 'Comprobante recibido y aceptado por SUNAT', 'success');
+
+            // Actualizar la fila en vivo
             const row = document.getElementById('row-' + ventaId);
             if (row) {
                 const badge = row.querySelector('span.rounded-full');
                 if (badge) {
-                    badge.className = 'px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700';
+                    badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400';
                     badge.textContent = 'Aceptado';
                 }
                 const accionBtn = row.querySelector('td:last-child button');
                 if (accionBtn) {
-                    accionBtn.outerHTML = '<span class="text-xs text-green-600"><i class="fa-solid fa-check"></i> Aceptado</span>';
+                    accionBtn.outerHTML = '<span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold"><i class="fa-solid fa-check mr-1"></i> Aceptado</span>';
                 }
             }
+            setTimeout(() => window.location.reload(), 2000);
         } else {
-            html = `<div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                        <p class="text-red-700 dark:text-red-400 font-medium"><i class="fa-solid fa-times-circle"></i> Error en envío</p>
-                        <p class="text-red-600 dark:text-red-300 mt-1">${data.message}</p>
-                        ${data.codigo ? `<p class="text-xs text-gray-500 mt-1">Código: ${data.codigo}</p>` : ''}
-                    </div>`;
+            toastSUNAT('Error en envío', data.message || 'SUNAT no pudo procesar el comprobante', 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar';
+            }
         }
-        showResult(html);
     })
     .catch(err => {
-        showResult(`<div class="p-3 bg-red-50 rounded-lg"><p class="text-red-700">Error de conexión: ${err.message}</p></div>`);
-    })
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar';
+        toastSUNAT('Error de conexión', err.message || 'No se pudo conectar con el servidor', 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar';
+        }
     });
 }
 
+// 2. Enviar todos los comprobantes pendientes con Toast (SIN VENTANAS MOLESTAS)
 function enviarPendientes() {
     const btn = document.getElementById('btnEnviarPendientes');
     const spinner = document.getElementById('spinnerPendientes');
-    btn.disabled = true;
-    spinner.classList.remove('hidden');
-    btn.querySelector('span:not(#spinnerPendientes)').textContent = 'Enviando...';
+    if (btn) btn.disabled = true;
+    if (spinner) spinner.classList.remove('hidden');
+    const textSpan = btn ? btn.querySelector('span:not(#spinnerPendientes)') : null;
+    if (textSpan) textSpan.textContent = 'Enviando...';
 
     fetch('<?= baseUrl('sunat/enviar-pendientes') ?>', {
         method: 'POST',
@@ -374,47 +419,29 @@ function enviarPendientes() {
     })
     .then(res => res.json())
     .then(data => {
-        let html = `<div class="space-y-2">`;
         if (data.success) {
-            html += `<div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <p class="text-green-700 dark:text-green-400 font-medium"><i class="fa-solid fa-check-circle"></i> ${data.message}</p>
-                        <p class="text-sm mt-1">Exitosos: <strong>${data.exitosos ?? 0}</strong> | Fallidos: <strong>${data.fallidos ?? 0}</strong></p>
-                     </div>`;
+            toastSUNAT('¡Envío masivo completado!', `${data.message} (Exitosos: ${data.exitosos ?? 0})`, 'success');
         } else {
-            html += `<div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                        <p class="text-red-700 dark:text-red-400 font-medium"><i class="fa-solid fa-times-circle"></i> ${data.message}</p>
-                     </div>`;
+            toastSUNAT('Atención en envío masivo', data.message || 'Hubo observaciones en algunos comprobantes', 'warning');
         }
 
-        if (data.resultados && data.resultados.length > 0) {
-            html += `<div class="mt-3"><h5 class="font-medium text-sm mb-2">Detalle:</h5><table class="w-full text-xs"><thead><tr class="bg-gray-50 dark:bg-slate-700"><th class="px-2 py-1 text-left">Comprobante</th><th class="px-2 py-1 text-left">Resultado</th></tr></thead><tbody>`;
-            data.resultados.forEach(r => {
-                html += `<tr class="border-t border-gray-100"><td class="px-2 py-1">${r.numero}</td><td class="px-2 py-1">${r.success ? '<span class="text-green-600">✓</span>' : '<span class="text-red-600">✗</span>'} ${r.message}</td></tr>`;
-            });
-            html += `</tbody></table></div>`;
-        }
-
-        html += `</div>`;
-        showResult(html);
-
-        if (data.exitosos > 0) {
-            setTimeout(() => window.location.reload(), 3000);
-        }
+        setTimeout(() => window.location.reload(), 2000);
     })
     .catch(err => {
-        showResult(`<div class="p-3 bg-red-50 rounded-lg"><p class="text-red-700">Error: ${err.message}</p></div>`);
-    })
-    .finally(() => {
-        btn.disabled = false;
-        spinner.classList.add('hidden');
-        btn.querySelector('span:not(#spinnerPendientes)').textContent = 'Enviar Todos';
+        toastSUNAT('Error', err.message || 'Error de conexión', 'error');
+        if (btn) btn.disabled = false;
+        if (spinner) spinner.classList.add('hidden');
+        if (textSpan) textSpan.textContent = 'Enviar Todos';
     });
 }
 
+// 3. Reintentar envío con Toast (SIN VENTANAS MOLESTAS)
 function reintentarEnvio(ventaId) {
     const btn = event.target.closest('button');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>';
+    }
 
     fetch('<?= baseUrl('sunat/reintentar') ?>', {
         method: 'POST',
@@ -426,30 +453,27 @@ function reintentarEnvio(ventaId) {
     })
     .then(res => res.json())
     .then(data => {
-        let html = '';
         if (data.success) {
-            html = `<div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <p class="text-green-700 dark:text-green-400 font-medium"><i class="fa-solid fa-check-circle"></i> ¡Reintento exitoso!</p>
-                        <p class="text-green-600 dark:text-green-300 mt-1">${data.message}</p>
-                    </div>`;
+            toastSUNAT('¡Reintento exitoso!', data.message, 'success');
             setTimeout(() => window.location.reload(), 2000);
         } else {
-            html = `<div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                        <p class="text-red-700 dark:text-red-400 font-medium"><i class="fa-solid fa-times-circle"></i> Error</p>
-                        <p class="text-red-600 dark:text-red-300 mt-1">${data.message}</p>
-                    </div>`;
+            toastSUNAT('Error en reintento', data.message, 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Reintentar';
+            }
         }
-        showResult(html);
     })
     .catch(err => {
-        showResult(`<div class="p-3 bg-red-50 rounded-lg"><p class="text-red-700">Error: ${err.message}</p></div>`);
-    })
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Reintentar';
+        toastSUNAT('Error de conexión', err.message, 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Reintentar';
+        }
     });
 }
 
+// 4. Probar conexión y Certificado (Conserva su ventana modal porque muestran tablas de datos técnicos)
 function testSunatConnection() {
     fetch('<?= baseUrl('sunat/test-connection') ?>', {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -509,4 +533,3 @@ function certInfo() {
     });
 }
 </script>
-

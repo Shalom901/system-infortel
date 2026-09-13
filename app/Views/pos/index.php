@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang='es' class='<?= session('theme', 'light') === 'dark' ? 'dark' : '' ?>'>
+<html lang='es' class='<?= (($_SESSION['theme'] ?? 'light') === 'dark') ? 'dark' : '' ?>'>
 <head>
     <meta name="csrf-token" content="<?= $_SESSION['csrf_token'] ?? '' ?>">
     <meta charset='UTF-8'>
@@ -54,6 +54,16 @@
     </style>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Sincronizar Modo Oscuro con el Dashboard -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || 
+            (!('theme' in localStorage) && <?= (($_SESSION['theme'] ?? 'light') === 'dark') ? 'true' : 'false' ?>)) {
+            document.documentElement.classList.add('dark');
+        } else if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 </head>
 <body class='bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-950 h-screen flex flex-col overflow-hidden text-slate-800 dark:text-slate-200 antialiased'>
     
@@ -89,18 +99,39 @@
         <!-- Left Column: Cart (40%) -->
         <div class='w-2/5 flex flex-col glass rounded-3xl shadow-xl overflow-hidden relative border border-white/50 dark:border-slate-700/50 z-10'>
             
-            <!-- Client Selection -->
-            <div class='p-5 border-b border-slate-200/50 dark:border-slate-700/50 bg-white/40 dark:bg-slate-800/40'>
-                <div class='relative group'>
-                    <i class='fa-solid fa-user absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary transition-colors'></i>
-                    <input type='text' id='clientSearch' autocomplete='off' placeholder='Buscar cliente (DNI/RUC/Nombre)...' class='w-full pl-11 pr-4 py-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 text-sm font-medium transition-all shadow-inner'><div id='clientSearchResults' class='absolute z-20 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl mt-2 hidden max-h-60 overflow-y-auto'></div>
-                </div>
-                <div class='flex gap-3 mt-3'>
-                    <button type="button" id='btnClienteGenerico' class='flex-1 py-2 text-xs bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg font-semibold text-slate-600 dark:text-slate-300 transition-all duration-200 flex items-center justify-center shadow-sm'>
-                        <i class='fa-solid fa-user-tag mr-2'></i> Genérico
+            <!-- Selección de Cliente Rápida (Sin Modales) -->
+            <div class='p-4 border-b border-slate-200/50 dark:border-slate-700/50 bg-white/40 dark:bg-slate-800/40'>
+                <!-- Buscador con botón de búsqueda directa -->
+                 <input type="hidden" id="selectedClientId" value="1">
+                <div class='relative group flex gap-2'>
+                    <div class="relative flex-1">
+                        <i class='fa-solid fa-user absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary transition-colors'></i>
+                        <input type='text' id='clientSearch' autocomplete='off' placeholder='DNI, RUC o Nombre del cliente...' 
+                               class='w-full pl-11 pr-4 py-2.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-xs font-semibold transition-all shadow-inner'>
+                        <div id='clientSearchResults' class='absolute z-20 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl mt-1.5 hidden max-h-56 overflow-y-auto custom-scrollbar'></div>
+                    </div>
+                    <!-- Botón Lupa Directo -->
+                    <button type="button" id="btnLookupClientDirect" onclick="buscarClienteDirectoPOS()" 
+                            class="px-3.5 py-2.5 bg-primary hover:bg-sky-600 text-white rounded-xl shadow-sm transition-all flex items-center justify-center shrink-0 hover:-translate-y-0.5" 
+                            title="Buscar DNI o RUC en vivo (o presiona Enter)">
+                        <i class="fa-solid fa-magnifying-glass" id="iconLookupClientDirect"></i>
                     </button>
-                    <button type="button" id='btnNuevoCliente' class='flex-1 py-2 text-xs bg-sky-50 dark:bg-sky-900/20 text-primary border border-sky-100 dark:border-sky-800/50 hover:bg-sky-100 dark:hover:bg-sky-900/40 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center shadow-sm'>
-                        <i class='fa-solid fa-user-plus mr-2'></i> Nuevo Cliente
+                </div>
+                
+                <!-- Tarjeta visual del Cliente Activo en la Venta -->
+                <div class='flex items-center justify-between mt-2.5 px-3 py-2 bg-sky-50/80 dark:bg-sky-950/30 border border-sky-200/60 dark:border-sky-800/40 rounded-xl'>
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-user-check"></i>
+                        </span>
+                        <div class="min-w-0">
+                            <p id="posClientName" class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">CLIENTE GENÉRICO</p>
+                            <p id="posClientDoc" class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">DNI: 00000000</p>
+                        </div>
+                    </div>
+                    <!-- Botón para volver a Genérico con 1 clic -->
+                    <button type="button" onclick="setClienteGenericoPOS()" class="text-slate-400 hover:text-red-500 p-1 rounded-lg transition-colors text-xs" title="Restablecer a Cliente Genérico">
+                        <i class="fa-solid fa-rotate-left"></i>
                     </button>
                 </div>
             </div>
@@ -304,10 +335,9 @@
             observer.observe(modal, {attributes: true});
         });
 
-        // Pass PHP variables to JS
-        const BASE_URL = '<?= baseUrl() ?>';
-        const IGV_PERCENTAGE = 0; // IGV deshabilitado
-        const CLIENTE_GENERICO = <?= json_encode($clienteGenerico ?? null) ?>;
+        var BASE_URL = '<?= baseUrl() ?>';
+        var IGV_PERCENTAGE = 0;
+        var CLIENTE_GENERICO = <?= json_encode($clienteGenerico ?? null) ?>;
     </script>
     <script src="<?= baseUrl('assets/js/pos.js') ?>"></script>
 </body>

@@ -1,3 +1,15 @@
+<?php
+/**
+ * @var string $clienteGenerico
+ */
+$clienteGenerico = $clienteGenerico ?? json_encode([
+    'id'           => 1,
+    'razon_social' => 'CLIENTE GENÉRICO',
+    'numero_doc'   => '00000000',
+    'tipo_doc'     => 'DNI'
+]);
+?>
+
 <div class="max-w-7xl mx-auto w-full pb-10">
     <!-- Encabezado -->
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -18,7 +30,7 @@
         <div class="lg:col-span-2 flex flex-col gap-6">
             
             <!-- Panel de Búsqueda de Productos / Items Libres -->
-            <div class="bg-white rounded-2xl p-5 relative z-20 border border-slate-100 dark:border-slate-700">
+            <div class="bg-white dark:bg-slate-900/70 rounded-2xl p-5 relative z-20 border border-slate-200/80 dark:border-slate-800 shadow-sm transition-colors">
                 <div class="mb-4 flex items-center justify-between">
                     <div><h2 class="font-bold text-slate-800 dark:text-white">Agregar conceptos</h2><p class="text-xs text-slate-500">Busca en el catálogo o crea un servicio personalizado.</p></div>
                 </div>
@@ -41,7 +53,7 @@
             </div>
 
             <!-- Panel de Lista de Ítems (Carrito de Cotización) -->
-            <div class="bg-white rounded-2xl p-0 overflow-hidden flex flex-col flex-1 min-h-[400px] border border-slate-100 dark:border-slate-700">
+            <div class="bg-white dark:bg-slate-900/70 rounded-2xl p-0 overflow-hidden flex flex-col flex-1 min-h-[400px] border border-slate-200/80 dark:border-slate-800 shadow-sm transition-colors">
                 <div class="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20">
                     <span id="quoteItemsCount" class="float-right rounded-full bg-sky-100 px-2.5 py-1 text-xs font-bold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">0 ítems</span>
                     <h3 class="font-bold text-slate-700 dark:text-slate-300"><i class="fa-solid fa-list-check mr-2"></i> Detalle de Cotización</h3>
@@ -63,15 +75,28 @@
         <div class="flex flex-col gap-6 lg:sticky lg:top-5 lg:self-start">
             
             <!-- Panel Cliente -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-100 dark:border-slate-700">
+            <div class="bg-white dark:bg-slate-900/70 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm transition-colors">
                 <h3 class="font-bold text-slate-700 dark:text-slate-300 mb-4"><i class="fa-solid fa-user-tag mr-2"></i> Datos del Cliente</h3>
                 
-                <div class="relative mb-4">
-                    <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="searchClientInput" 
-                           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500/20 transition-all dark:bg-slate-900/50 dark:border-slate-700 dark:text-white" 
-                           placeholder="Buscar cliente (DNI/RUC o Nombre)..." autocomplete="off">
-                    <div id="clientResultsDropdown" class="absolute w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 hidden max-h-48 overflow-y-auto custom-scrollbar"></div>
+                <!-- Buscador directo con botón de lupa -->
+                <div class="relative mb-3">
+                    <div class="flex gap-2">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="searchClientInput" 
+                                   class="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all dark:bg-slate-900/50 dark:border-slate-700 dark:text-white" 
+                                   placeholder="DNI, RUC o Nombre..." autocomplete="off">
+                            <!-- Desplegable para autocompletar clientes ya registrados -->
+                            <div id="clientResultsDropdown" class="absolute w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 hidden max-h-48 overflow-y-auto custom-scrollbar"></div>
+                        </div>
+                        <!-- Botón de Lupa Directo -->
+                        <button type="button" id="btnBuscarDocDirecto" onclick="buscarDocDirecto()" 
+                                class="px-4 py-2.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-sm font-bold shadow-sm transition-all hover:-translate-y-0.5 flex items-center justify-center shrink-0" 
+                                title="Buscar en RENIEC o SUNAT">
+                            <i class="fa-solid fa-magnifying-glass" id="iconLupaDoc"></i>
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-1 pl-1">Escribe DNI o RUC y pulsa la lupa 🔍 (o Enter) para buscarlo en vivo</p>
                 </div>
 
                 <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 relative group">
@@ -82,35 +107,71 @@
                     <p class="font-bold text-slate-800 dark:text-white text-sm" id="selectedClientName">CLIENTE GENÉRICO</p>
                     <p class="text-xs text-slate-500 mt-1" id="selectedClientDoc">DNI: 00000000</p>
                 </div>
-            </div>
 
-            <!-- Panel Ajustes de Cotización -->
-            <div class="bg-white rounded-2xl p-5">
-                <h3 class="font-bold text-slate-700 dark:text-slate-300 mb-4"><i class="fa-solid fa-gear mr-2"></i> Ajustes</h3>
-                
-                <div class="space-y-4 text-sm">
-                    <div>
-                        <label class="block text-slate-500 mb-1 font-medium">Validez (días)</label>
-                        <select id="quoteValidez" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl dark:bg-slate-900/50 dark:border-slate-700 dark:text-white">
-                            <option value="5">5 días</option>
-                            <option value="15" selected>15 días</option>
-                            <option value="30">30 días</option>
-                            <option value="60">60 días</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-slate-500 mb-1 font-medium">Condiciones (Opcional)</label>
-                        <input type="text" id="quoteCondiciones" placeholder="Ej. Pago al contado, entrega inmediata" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl dark:bg-slate-900/50 dark:border-slate-700 dark:text-white">
-                    </div>
-                    <div>
-                        <label class="block text-slate-500 mb-1 font-medium">Notas internas (Privado)</label>
-                        <input type="text" id="quoteNotas" placeholder="Notas solo para el sistema" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl dark:bg-slate-900/50 dark:border-slate-700 dark:text-white">
-                    </div>
+                <!-- Campo Dirección Opcional -->
+                <div class="mt-3">
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                        Dirección del Cliente <span class="text-slate-400 font-normal">(Opcional)</span>
+                    </label>
+                    <input type="text" id="clientAddressInput" 
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 dark:bg-slate-900/50 dark:border-slate-700 dark:text-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all" 
+                           placeholder="Ej. Jr. Tarapacá 450, Pucallpa (o dejar vacío si no aplica)">
                 </div>
             </div>
 
+            <!-- Panel Ajustes de Cotización -->
+            <div class="bg-white dark:bg-slate-900/70 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm transition-colors">
+                <h3 class="font-bold text-slate-700 dark:text-slate-300 mb-4"><i class="fa-solid fa-gear mr-2"></i> Ajustes</h3>
+                
+                <div class="space-y-3 text-xs">
+            <!-- Validez -->
+            <div>
+                <label class="block text-slate-500 mb-1 font-semibold">Validez</label>
+                <select id="quoteValidez" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white">
+                    <option value="5">5 días calendario</option>
+                    <option value="15" selected>15 días calendario</option>
+                    <option value="30">30 días calendario</option>
+                </select>
+            </div>
+
+            <!-- Forma de Pago -->
+            <div>
+                <label class="block text-slate-500 mb-1 font-semibold">Forma de Pago</label>
+                <input type="text" id="quoteFormaPago" value="Depósito / Transferencia bancaria" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white">
+            </div>
+
+            <!-- Tiempo de Entrega -->
+            <div>
+                <label class="block text-slate-500 mb-1 font-semibold">Tiempo de Entrega</label>
+                <input type="text" id="quoteEntrega" value="Inmediata" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white">
+            </div>
+
+            <!-- Garantía -->
+            <div>
+                <label class="block text-slate-500 mb-1 font-semibold">Garantía</label>
+                <input type="text" id="quoteGarantia" value="01 año por defectos de fabricación" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white">
+            </div>
+
+            <!-- Condición IGV -->
+            <div>
+                <label class="block text-slate-500 mb-1 font-semibold">IGV</label>
+                <select id="quoteIgv" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white">
+                    <option value="Precios finales (Exonerado Ley de la Amazonía)" selected>Exonerado (Ley Amazonía)</option>
+                    <option value="Precios incluyen IGV (18%)">Incluye IGV</option>
+                    <option value="Precios no incluyen IGV">No incluye IGV (+18%)</option>
+                </select>
+            </div>
+
+            <!-- Notas internas -->
+            <div>
+                <label class="block text-slate-500 mb-1 font-semibold">Notas internas</label>
+                <input type="text" id="quoteNotas" placeholder="Notas privadas del vendedor" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white">
+            </div>
+        </div>
+            </div>
+
             <!-- Panel Totales y Guardar -->
-            <div class="bg-white rounded-2xl p-6 shadow-2xl relative overflow-hidden border border-sky-100 dark:border-slate-700">
+            <div class="bg-white dark:bg-slate-900/70 rounded-2xl p-6 shadow-xl relative overflow-hidden border border-slate-200/80 dark:border-slate-800 transition-colors">
                 <!-- Decoración -->
                 <div class="absolute -right-10 -top-10 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl"></div>
                 
@@ -165,18 +226,26 @@
                 <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Descripción / Concepto</label>
                 <textarea id="fiDesc" rows="2" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 outline-none transition-all dark:bg-slate-900/50 dark:border-slate-700 dark:text-white resize-none" placeholder="Ej. Mantenimiento preventivo de red LAN..."></textarea>
             </div>
-            <div class="grid grid-cols-2 gap-4">
+
+            <!-- AQUÍ PEGAS EL CÓDIGO DE 3 COLUMNAS -->
+            <div class="grid grid-cols-3 gap-3">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Precio Final (S/)</label>
-                    <input type="number" id="fiPrecio" min="0" step="0.01" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/20 outline-none transition-all dark:bg-slate-900/50 dark:border-slate-700 dark:text-white text-lg font-bold text-sky-600">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Precio (S/)</label>
+                    <input type="number" id="fiPrecio" min="0" step="0.01" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sky-600 font-bold focus:ring-2 focus:ring-sky-500/20 outline-none dark:bg-slate-900/50 dark:border-slate-700 dark:text-white">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Cantidad</label>
-                    <div class="flex items-center bg-slate-50 border border-slate-200 rounded-xl overflow-hidden dark:bg-slate-900/50 dark:border-slate-700">
-                        <button onclick="updateFiQty(-1)" class="px-4 py-3 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold transition-colors">-</button>
-                        <input type="number" id="fiQty" value="1" min="1" step="0.01" class="w-full text-center bg-transparent border-none focus:ring-0 font-bold text-slate-700 dark:text-white p-0">
-                        <button onclick="updateFiQty(1)" class="px-4 py-3 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold transition-colors">+</button>
-                    </div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Cantidad</label>
+                    <input type="number" id="fiQty" value="1" min="1" step="0.01" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center focus:ring-2 focus:ring-sky-500/20 outline-none dark:bg-slate-900/50 dark:border-slate-700 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">U.M.</label>
+                    <select id="fiUm" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-sky-500/20 outline-none dark:bg-slate-900/50 dark:border-slate-700 dark:text-white">
+                        <option value="UND" selected>UND</option>
+                        <option value="SER">SER</option>
+                        <option value="MTR">MTR</option>
+                        <option value="GLN">GLN</option>
+                        <option value="PAQ">PAQ</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -192,15 +261,15 @@
 <!-- JAVASCRIPT: Lógica de Cotizaciones         -->
 <!-- ========================================== -->
 <script>
-    // Variables Globales
-    let quoteItems = [];
-    const CLIENTE_GENERICO = <?= $clienteGenerico ?>;
-    let currentClient = { ...CLIENTE_GENERICO };
+    // Variables Globales (compatibles con navegación Turbo)
+    var quoteItems = [];
+    var CLIENTE_GENERICO = <?= $clienteGenerico ?? json_encode(['id' => 1, 'razon_social' => 'CLIENTE GENÉRICO', 'numero_doc' => '00000000', 'tipo_doc' => 'DNI']) ?>;
+    var currentClient = Object.assign({}, CLIENTE_GENERICO);
     
     // Configuración general
-    const API_CLIENTS = '<?= baseUrl('api/clientes/buscar') ?>';
-    const API_PRODUCTS = '<?= baseUrl('api/productos/buscar') ?>';
-    const API_SAVE = '<?= baseUrl('cotizaciones/guardar') ?>';
+    var API_CLIENTS = '<?= baseUrl('api/clientes/buscar') ?>';
+    var API_PRODUCTS = '<?= baseUrl('api/productos/buscar') ?>';
+    var API_SAVE = '<?= baseUrl('cotizaciones/guardar') ?>';
 
     // Inicializador
     const initQuotes = () => {
@@ -359,15 +428,23 @@
     }
 
     function setClient(c) {
-        currentClient = c;
-        document.getElementById('selectedClientName').textContent = c.razon_social;
-        document.getElementById('selectedClientDoc').textContent = c.tipo_doc + ': ' + c.numero_doc;
-        showToast('Cliente seleccionado', 'success');
+    currentClient = c;
+    document.getElementById('selectedClientName').textContent = c.razon_social;
+    document.getElementById('selectedClientDoc').textContent = (c.tipo_doc || 'DOC') + ': ' + (c.numero_doc || '-');
+
+    // Autocompletar la dirección si el cliente ya la tiene registrada
+    const addrInput = document.getElementById('clientAddressInput');
+    if (addrInput) {
+        addrInput.value = c.direccion || '';
     }
+    showToast('Cliente seleccionado', 'success');
+}
 
     function resetClient() {
-        setClient(CLIENTE_GENERICO);
-    }
+    setClient(CLIENTE_GENERICO);
+    const addrInput = document.getElementById('clientAddressInput');
+    if (addrInput) addrInput.value = '';
+}
 
     // ---- LOGICA DE ITEMS ----
 
@@ -560,8 +637,12 @@
         
         const payload = {
             cliente_id: currentClient.id,
+            cliente_direccion: document.getElementById('clientAddressInput') ? document.getElementById('clientAddressInput').value.trim() : '',
             validez: document.getElementById('quoteValidez').value,
-            condiciones: document.getElementById('quoteCondiciones').value,
+            condicion_pago: document.getElementById('quoteFormaPago') ? document.getElementById('quoteFormaPago').value : 'Depósito / Transferencia bancaria',
+            tiempo_entrega: document.getElementById('quoteEntrega') ? document.getElementById('quoteEntrega').value : 'Inmediata',
+            garantia: document.getElementById('quoteGarantia') ? document.getElementById('quoteGarantia').value : '01 año por defectos de fabricación',
+            condicion_igv: document.getElementById('quoteIgv') ? document.getElementById('quoteIgv').value : 'Precios finales exonerados del IGV (Ley de la Amazonía N° 27037)',
             notas: document.getElementById('quoteNotas').value,
             moneda: 'PEN',
             subtotal: total,
@@ -603,4 +684,140 @@
             spinner.classList.add('hidden');
         });
     }
+
+    // ========================================================
+    // BÚSQUEDA DIRECTA RENIEC / SUNAT SIN VENTANAS MODALES
+    // ========================================================
+    function buscarDocDirecto() {
+        const input = document.getElementById('searchClientInput');
+        const val = input.value.trim();
+        const btn = document.getElementById('btnBuscarDocDirecto');
+        const icon = document.getElementById('iconLupaDoc');
+
+        if (!val) {
+            showToast('Escribe un DNI (8 dígitos) o RUC (11 dígitos)', 'warning');
+            input.focus();
+            return;
+        }
+
+        // Si es texto (búsqueda por nombre), abrir el desplegable
+        if (!/^\d+$/.test(val)) {
+            showToast('Para buscar en RENIEC/SUNAT ingresa solo números (DNI o RUC)', 'info');
+            return;
+        }
+
+        // Detectar si es DNI o RUC automáticamente
+        let tipoDoc = '';
+        if (val.length === 8) {
+            tipoDoc = '1'; // DNI
+        } else if (val.length === 11) {
+            tipoDoc = '6'; // RUC
+        } else {
+            showToast('El documento debe tener 8 dígitos (DNI) o 11 dígitos (RUC)', 'warning');
+            return;
+        }
+
+        // Estado de carga en la lupa
+        btn.disabled = true;
+        icon.className = 'fa-solid fa-spinner fa-spin';
+
+        // 1. Primero verificar si ya existe en la base de datos local
+        fetch(`${API_CLIENTS}?q=${encodeURIComponent(val)}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.json())
+        .then(res => {
+            const clientes = res.clientes || [];
+            const clienteLocal = clientes.find(c => c.numero_doc === val);
+
+            if (clienteLocal) {
+                // Ya existe localmente: seleccionarlo de inmediato
+                setClient(clienteLocal);
+                input.value = '';
+                showToast('Cliente seleccionado del sistema', 'success');
+                btn.disabled = false;
+                icon.className = 'fa-solid fa-magnifying-glass';
+            } else {
+                // 2. Si no existe en la BD, consultar a la API oficial de RENIEC/SUNAT
+                consultarApiExterna(tipoDoc, val, btn, icon, input);
+            }
+        })
+        .catch(() => {
+            consultarApiExterna(tipoDoc, val, btn, icon, input);
+        });
+    }
+
+    // Consulta a RENIEC / SUNAT y autoregistro
+    function consultarApiExterna(tipoDoc, numero, btn, icon, input) {
+        fetch(`<?= baseUrl('api/clientes/buscar-documento') ?>?tipo_doc=${tipoDoc}&numero=${encodeURIComponent(numero)}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success && res.data) {
+                const nombre = res.data.razon_social || res.data.nombre || '';
+                const direccion = res.data.direccion || '';
+
+                if (!nombre) {
+                    showToast('No se encontró el nombre para este documento', 'error');
+                    return;
+                }
+
+                // Guardar automáticamente el nuevo cliente en la BD para tener su ID
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                fetch(`<?= baseUrl('api/clientes/guardar') ?>`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        tipo_doc: tipoDoc,
+                        numero_doc: numero,
+                        razon_social: nombre,
+                        direccion: direccion
+                    })
+                })
+                .then(r => r.json())
+                .then(saveRes => {
+                    const nuevoId = saveRes.cliente_id || (saveRes.data ? saveRes.data.id : null);
+                    
+                    // Actualizar inmediatamente la tarjeta del cliente seleccionado en pantalla
+                    setClient({
+                        id: nuevoId,
+                        razon_social: nombre,
+                        numero_doc: numero,
+                        tipo_doc: tipoDoc === '1' ? 'DNI' : 'RUC',
+                        direccion: direccion
+                    });
+
+                    // Si trajo dirección, reflejarla en el campo de dirección
+                    if (direccion) {
+                        const dirInput = document.getElementById('clientAddressInput');
+                        if (dirInput) dirInput.value = direccion;
+                    }
+
+                    input.value = '';
+                    showToast(`Cliente encontrado: ${nombre}`, 'success');
+                });
+
+            } else {
+                showToast(res.message || 'No se encontró información en RENIEC/SUNAT', 'error');
+            }
+        })
+        .catch(err => {
+            showToast('Error de conexión al consultar documento', 'error');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            icon.className = 'fa-solid fa-magnifying-glass';
+        });
+    }
+
+    // Permitir buscar presionando la tecla ENTER en la caja de texto
+    document.getElementById('searchClientInput')?.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            buscarDocDirecto();
+        }
+    });
 </script>

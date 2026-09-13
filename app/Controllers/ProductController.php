@@ -230,54 +230,82 @@ class ProductController
      * Procesa y actualiza el producto
      * POST /productos/{id}/editar
      */
-    public function update(int $id): void
+public function update(int $id): void
     {
-        $this->requireAuth();
-        $this->requireCsrf();
+        if (empty($_SESSION['user_id'])) { redirect('/'); return; }
 
-        $producto = $this->productModel->getById($id);
-        if (!$producto) {
-            $this->setFlash('error', 'Producto no encontrado.');
-            $this->redirect('/productos');
+        $nombre = trim($_POST['nombre'] ?? '');
+
+        // 1. Leer los precios con los nombres exactos de tu formulario (name="precio_venta_pen")
+        $precioVenta  = (float)($_POST['precio_venta_pen'] ?? $_POST['precio_venta'] ?? 0);
+        $precioCompra = (float)($_POST['precio_compra_pen'] ?? $_POST['precio_compra'] ?? 0);
+        $precioMayor  = (float)($_POST['precio_mayorista_pen'] ?? $_POST['precio_mayorista'] ?? 0);
+
+        // 2. Leer inventario y stock
+        $stockActual  = isset($_POST['stock_actual']) ? (float)$_POST['stock_actual'] : null;
+        $stockMinimo  = isset($_POST['stock_minimo']) ? (float)$_POST['stock_minimo'] : 1;
+        $stockMaximo  = isset($_POST['stock_maximo']) ? (float)$_POST['stock_maximo'] : null;
+
+        // 3. Selectores y relaciones
+        $categoriaId  = !empty($_POST['categoria_id']) ? (int)$_POST['categoria_id'] : null;
+        $marcaId      = !empty($_POST['marca_id']) ? (int)$_POST['marca_id'] : null;
+        $unidadId     = !empty($_POST['unidad_medida_id']) ? (int)$_POST['unidad_medida_id'] : null;
+        $proveedorId  = !empty($_POST['proveedor_id']) ? (int)$_POST['proveedor_id'] : null;
+
+        // Si hay stock disponible, asegurar que el producto quede activo
+        $activo = isset($_POST['activo']) ? 1 : ($stockActual > 0 ? 1 : 0);
+
+        $data = [
+            'nombre'                 => $nombre,
+            'precio_venta_pen'       => $precioVenta,
+            'precio_compra_pen'      => $precioCompra,
+            'precio_mayorista_pen'   => $precioMayor,
+            'categoria_id'           => $categoriaId,
+            'marca_id'               => $marcaId,
+            'unidad_medida_id'       => $unidadId,
+            'proveedor_principal_id' => $proveedorId,
+            'stock_minimo'           => $stockMinimo,
+            'activo'                 => $activo,
+        ];
+
+        if ($stockActual !== null) {
+            $data['stock_actual'] = $stockActual;
+        }
+        if ($stockMaximo !== null) {
+            $data['stock_maximo'] = $stockMaximo;
         }
 
-        $data   = $this->getProductDataFromPost();
-        $errors = $this->validateProduct($data, $id);
-
-        // Subir nueva imagen si se proporcionó
-        if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
-            $imagenResult = $this->uploadImage($_FILES['imagen']);
-            if ($imagenResult['success']) {
-                // Eliminar imagen anterior si existe
-                if (!empty($producto['imagen_path'])) {
-                    $oldPath = __DIR__ . '/../../public/uploads/products/' . $producto['imagen_path'];
-                    if (file_exists($oldPath)) {
-                        unlink($oldPath);
-                    }
+        // 4. Subida de imagen si se seleccionó un archivo nuevo
+        if (!empty($_FILES['imagen']['name']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+            $file = $_FILES['imagen'];
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+                $filename = 'prod_' . uniqid('', true) . '.' . $ext;
+                $uploadDir = ROOT_PATH . '/public/uploads/products';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
                 }
-                $data['imagen_path'] = $imagenResult['path'];
-            } else {
-                $errors['imagen'] = $imagenResult['message'];
+                if (move_uploaded_file($file['tmp_name'], $uploadDir . '/' . $filename)) {
+                    $data['imagen_path'] = $filename;
+                }
             }
         }
 
-        if (!empty($errors)) {
-            $this->render('products/form', [
-                'titulo'      => 'Editar Producto',
-                'producto'    => array_merge($producto, $data),
-                'categorias'  => $this->categoryModel->getForSelect(),
-                'proveedores' => $this->supplierModel->getForSelect(),
-                'unidades'    => $this->getUnidadesMedida(),
-                'marcas'      => $this->getMarcas(),
-                'errors'      => $errors,
-                'modo'        => 'editar',
-            ]);
-            return;
+        try {
+            $this->productModel->update($id, $data);
+
+            // Si se repuso stock, limpiar la alerta de la campanita
+            if ($stockActual !== null && $stockActual > $stockMinimo) {
+                $stmtAlerta = $this->db->prepare("UPDATE stock_alertas SET leida = 1 WHERE producto_id = :id");
+                $stmtAlerta->execute([':id' => $id]);
+            }
+
+            $_SESSION['flash'] = ['type' => 'success', 'message' => 'Producto y precios actualizados correctamente.'];
+        } catch (\Throwable $e) {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'Error al actualizar: ' . $e->getMessage()];
         }
 
-        $this->productModel->update($id, $data);
-        $this->setFlash('success', 'Producto actualizado correctamente.');
-        $this->redirect('/productos');
+        redirect('/productos');
     }
 
     /**

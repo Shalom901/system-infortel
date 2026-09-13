@@ -134,9 +134,9 @@ class CategoryModel
 
         $sql = "
             INSERT INTO categorias (
-                codigo, nombre, descripcion, parent_id, imagen, orden, activo, activo, created_at, updated_at
+                codigo, nombre, descripcion, parent_id, orden, activo, created_at, updated_at
             ) VALUES (
-                :codigo, :nombre, :descripcion, :parent_id, :imagen, :orden, 1, 0, NOW(), NOW()
+                :codigo, :nombre, :descripcion, :parent_id, :orden, 1, NOW(), NOW()
             )
         ";
 
@@ -144,10 +144,9 @@ class CategoryModel
         $stmt->execute([
             ':codigo'      => strtoupper($data['codigo']),
             ':nombre'      => trim($data['nombre']),
-            ':descripcion' => $data['descripcion'] ?? null,
+            ':descripcion' => !empty($data['descripcion']) ? trim($data['descripcion']) : null,
             ':parent_id'   => !empty($data['parent_id']) ? (int)$data['parent_id'] : null,
-            ':imagen'      => $data['imagen']      ?? null,
-            ':orden'       => $data['orden']       ?? 0,
+            ':orden'       => (int)($data['orden'] ?? 0),
         ]);
 
         return (int)$this->db->lastInsertId();

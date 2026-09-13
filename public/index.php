@@ -141,7 +141,7 @@ $router->get('/cotizaciones/pdf/{id}',   'QuoteController@printPDF');
 $router->get('/caja',                    'CajaController@index');
 $router->post('/caja/abrir',             'CajaController@abrir');
 $router->post('/caja/cerrar',            'CajaController@cerrar');
-
+ 
 // --- Proveedores ---
 $router->get('/proveedores',             'SupplierController@index');
 $router->get('/proveedores/crear',       'SupplierController@create');
@@ -163,6 +163,10 @@ $router->post('/usuario/tema',           'UserController@updateTheme');
 $router->get('/reportes',                'ReportController@index');
 
 // --- SUNAT ---
+$router->get('/sunat/listado',                   'SunatController@listado', ['auth']);
+$router->get('/sunat/export-excel',              'SunatController@exportExcel', ['auth']);
+$router->get('/sunat/export-pdf',                'SunatController@exportPDF', ['auth']);
+$router->get('/sunat/export-txt',                'SunatController@exportTXT', ['auth']);
 $router->get('/sunat/config',                    'SunatController@config', ['auth']);
 $router->post('/sunat/actualizar',               'SunatController@updateConfig', ['auth']);
 $router->post('/sunat/enviar',                   'SunatController@enviar', ['auth']);

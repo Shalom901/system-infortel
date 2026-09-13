@@ -43,6 +43,31 @@ class DashboardController
         require VIEWS_PATH . '/dashboard/index.php';
         $content = ob_get_clean();
         require VIEWS_PATH . '/layouts/app.php';
+
+        // Obtener los productos con mayor rotación y ventas
+        $topProducts = [];
+        try {
+            $sqlTop = "
+                SELECT 
+                    p.id,
+                    p.nombre,
+                    p.codigo_interno,
+                    p.imagen_path,
+                    COALESCE(SUM(dv.cantidad), 0) AS total_vendido,
+                    COALESCE(SUM(dv.subtotal), 0) AS total_monto
+                FROM detalle_ventas dv
+                JOIN productos p ON p.id = dv.producto_id
+                JOIN ventas v ON v.id = dv.venta_id
+                WHERE v.estado != 'anulada'
+                GROUP BY p.id, p.nombre, p.codigo_interno, p.imagen_path
+                ORDER BY total_vendido DESC
+                LIMIT 4
+            ";
+            $stmt = $this->db->query($sqlTop);
+            $topProducts = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            $topProducts = [];
+        }
     }
 
     /** Datos usados por la actualización automática del dashboard. */

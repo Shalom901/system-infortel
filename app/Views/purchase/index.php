@@ -12,7 +12,7 @@ $title = 'Compras';
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h2 class="text-xl font-bold text-gray-800 dark:text-white">Compras</h2>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-white">Historial de Compras</h2>
             <p class="text-sm text-gray-500">Registro de órdenes de compra a proveedores</p>
         </div>
         <button onclick="openModal('modalNuevaCompra')" class="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm">

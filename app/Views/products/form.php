@@ -91,36 +91,44 @@ $producto = $producto ?? [];
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-800 shadow-lg rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-                    <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-6 border-b border-slate-200 dark:border-slate-700 pb-3">Gestión de Inventario</h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Proveedor -->
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Proveedor Principal</label>
-                            <select name="proveedor_principal_id" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:ring-sky-500 focus:border-sky-500 py-2.5 px-4 transition-colors">
-                                <option value="">Ninguno</option>
+                <!-- Gestión de Inventario con Stock Actual (  EDITAR  )-->
+                <div class="bg-white dark:bg-slate-900/70 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm mb-6">
+                    <h3 class="font-bold text-slate-800 dark:text-white text-sm mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-stacked text-primary"></i> Gestión de Inventario
+                    </h3>
+
+                    <div class="space-y-4">
+                        <!-- Proveedor Principal -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Proveedor Principal</label>
+                            <select name="proveedor_id" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-700 dark:text-white outline-none focus:border-primary">
+                                <option value="">-- Sin proveedor --</option>
                                 <?php foreach ($proveedores ?? [] as $prov): ?>
-                                    <option value="<?= $prov['id'] ?>" <?= (($producto['proveedor_principal_id'] ?? '') == $prov['id']) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($prov['razon_social'] . ' - ' . $prov['numero_doc']) ?>
+                                    <option value="<?= $prov['id'] ?>" <?= ($producto['proveedor_principal_id'] ?? '') == $prov['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($prov['razon_social']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        
-                        <!-- Stock Actual (Solo Crear) -->
-                        <?php if ($modo === 'crear'): ?>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Stock Inicial</label>
-                            <!-- El casteo (float) limpia la presentación automáticamente -->
-                            <input type="number" step="0.01" name="stock_actual" value="<?= (float)($producto['stock_actual'] ?? 0) ?>" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:ring-sky-500 focus:border-sky-500 py-2.5 px-4 transition-colors">
-                        </div>
-                        <?php endif; ?>
 
-                        <!-- Stock Mínimo -->
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Stock Mínimo (Alerta)</label>
-                            <input type="number" step="0.01" name="stock_minimo" value="<?= (float)($producto['stock_minimo'] ?? 0) ?>" class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:ring-sky-500 focus:border-sky-500 py-2.5 px-4 transition-colors">
+                        <!-- 2 Columnas: Stock Actual y Stock Mínimo -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Stock Actual (Disponible) <span class="text-primary">*</span>
+                                </label>
+                                <input type="number" name="stock_actual" step="0.01" min="0" 
+                                    value="<?= (float)($producto['stock_actual'] ?? 0) ?>" 
+                                    class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-black text-sky-600 dark:text-sky-400 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                                    Stock Mínimo (Alerta)
+                                </label>
+                                <input type="number" name="stock_minimo" step="0.01" min="0" 
+                                    value="<?= (float)($producto['stock_minimo'] ?? 1) ?>" 
+                                    class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                            </div>
                         </div>
                     </div>
                 </div>

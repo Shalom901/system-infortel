@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use PDO;
 use App\Models\SaleModel;
+use App\Models\ComprobanteModel;
 use App\Services\SunatService;
 use App\Services\XmlGeneratorService;
 use App\Services\XmlSignerService;
@@ -31,6 +32,156 @@ class SunatController
         $this->sunatService = new SunatService();
         $this->xmlGenerator = new XmlGeneratorService();
         $this->xmlSigner = new XmlSignerService();
+    }
+
+    // =========================================================================
+    // GESTIÓN Y LISTADO
+    // =========================================================================
+
+    /**
+     * Muestra el listado de comprobantes con filtros de periodo
+     */
+public function listado(): void
+    {
+        $this->requireSunatViewer();
+
+        $hoy = date('Y-m-d');
+        $periodo = strtolower(trim($_GET['periodo'] ?? 'today'));
+
+        // Usar la fecha de hoy si desde/hasta vienen vacíos
+        $fechaDesde = !empty($_GET['desde']) ? trim($_GET['desde']) : $hoy;
+        $fechaHasta = !empty($_GET['hasta']) ? trim($_GET['hasta']) : $hoy;
+
+        // Lógica de periodos predefinidos (Soporta inglés y español)
+        switch ($periodo) {
+            case 'today':
+            case 'hoy':
+                $fechaDesde = $fechaHasta = $hoy;
+                break;
+
+            case 'week':
+            case 'semana':
+                $fechaDesde = date('Y-m-d', strtotime('monday this week'));
+                $fechaHasta = date('Y-m-d', strtotime('sunday this week'));
+                break;
+
+            case 'month':
+            case 'mes':
+                $fechaDesde = date('Y-m-01');
+                $fechaHasta = date('Y-m-t');
+                break;
+
+            case 'custom':
+            case 'rango':
+                // Mantiene los valores de $_GET['desde'] y $_GET['hasta']
+                break;
+
+            default:
+                $fechaDesde = $fechaHasta = $hoy;
+                break;
+        }
+
+        $filters = [
+            'fecha_desde'      => $fechaDesde,
+            'fecha_hasta'      => $fechaHasta,
+            'tipo_comprobante' => $_GET['tipo']   ?? '',
+            'estado'           => $_GET['estado'] ?? '',
+            'busqueda'         => $_GET['q']      ?? '',
+            'limit'            => (int)($_GET['limit'] ?? 50),
+            'offset'           => ((int)($_GET['page'] ?? 1) - 1) * (int)($_GET['limit'] ?? 50),
+        ];
+
+        $model = new ComprobanteModel($this->db);
+        $comprobantes = $model->getListado($filters);
+        $total = $model->countListado($filters);
+
+        $totalPaginas = (int)ceil($total / $filters['limit']);
+        $paginaActual = (int)($_GET['page'] ?? 1);
+
+        $title = 'Gestión de Comprobantes SUNAT';
+        ob_start();
+        require VIEWS_PATH . '/sunat/listado.php';
+        $content = ob_get_clean();
+        require VIEWS_PATH . '/layouts/app.php';
+    }
+
+    /**
+     * Exporta el listado filtrado a Excel
+     */
+    /**
+     * Exporta el listado filtrado a Excel (CSV compatible con UTF-8)
+     */
+    public function exportExcel(): void
+    {
+        $this->requireSunatViewer(); // 👈 Ahora el vendedor también puede exportar Excel (CSV)
+        $model = new ComprobanteModel($this->db);
+        $data = $model->getListado(array_merge($_GET, ['export' => true]));
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="reporte_sunat_' . date('Ymd') . '.csv"');
+        
+        $output = fopen('php://output', 'w');
+        // BOM UTF-8 para que Excel muestre tildes y caracteres en español correctamente
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+        
+        // Encabezados
+        fputcsv($output, ['Fecha', 'Tipo', 'Comprobante', 'Cliente', 'Doc Cliente', 'Total', 'Estado SUNAT', 'Mensaje SUNAT'], ';');
+        
+        foreach ($data as $r) {
+            $tipoNombre = ($r['tipo_comprobante'] === '01') ? 'Factura' : (($r['tipo_comprobante'] === '03') ? 'Boleta' : $r['tipo_comprobante']);
+            fputcsv($output, [
+                $r['fecha_emision_real'] ?? '',
+                $tipoNombre,
+                ($r['serie'] ?? '') . '-' . ($r['numero'] ?? ''),
+                $r['cliente_nombre'] ?? '',
+                $r['cliente_doc'] ?? '',
+                number_format((float)($r['total'] ?? 0), 2, '.', ''),
+                ucfirst($r['estado_sunat'] ?? $r['estado'] ?? 'pendiente'),
+                $r['mensaje_sunat'] ?? ''
+            ], ';');
+        }
+        fclose($output);
+        exit;
+    }
+
+    /**
+     * Exporta el listado a PDF masivo
+     */
+    public function exportPDF(): void
+    {
+        $this->requireSunatViewer(); // 👈 Ahora el vendedor también puede exportar PDF
+        $model = new ComprobanteModel($this->db);
+        $comprobantes = $model->getListado(array_merge($_GET, ['export' => true]));
+        
+        ob_start();
+        include VIEWS_PATH . '/sunat/reporte_pdf.php';
+        $html = ob_get_clean();
+
+        if (class_exists('Dompdf\Dompdf')) {
+            $dompdf = new \Dompdf\Dompdf();
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'landscape');
+            $dompdf->render();
+            $dompdf->stream("Reporte_SUNAT_" . date('Ymd') . ".pdf", ["Attachment" => false]);
+        }
+        exit;
+    }
+
+    /**
+     * Exporta a formato TXT (Plano)
+     */
+    public function exportTXT(): void
+    {
+        $this->requireSunatViewer(); // 👈 Ahora el vendedor también puede exportar Excel (CSV)
+        $model = new ComprobanteModel($this->db);
+        $data = $model->getListado(array_merge($_GET, ['export' => true]));
+
+        header('Content-Type: text/plain');
+        header('Content-Disposition: attachment;filename="sunat_export_' . date('Ymd') . '.txt"');
+        foreach ($data as $r) {
+            echo "{$r['tipo_comprobante']}|{$r['serie']}|{$r['numero']}|{$r['fecha_emision_real']}|{$r['total']}|{$r['cliente_doc']}\r\n";
+        }
+        exit;
     }
 
     // =========================================================================
@@ -568,10 +719,25 @@ class SunatController
         }
     }
 
+    /**
+     * Permite el acceso a visualización a Administradores y Vendedores
+     */
     private function requireSunatViewer(): void
     {
-        if (empty($_SESSION['user_id']) || (!isAdmin() && !isVendedor())) {
-            redirect('/dashboard');
+        // 1. Verificar sesión activa
+        if (empty($_SESSION['user_id']) && empty($_SESSION['usuario_id'])) {
+            redirect('/');
+            exit;
+        }
+
+        // 2. Permitir si es Admin o Vendedor
+        $esPermitido = (function_exists('isAdmin') && isAdmin()) 
+                    || (function_exists('isVendedor') && isVendedor())
+                    || in_array(strtolower($_SESSION['user_rol'] ?? $_SESSION['rol'] ?? ''), ['admin', 'administrador', 'vendedor']);
+
+        if (!$esPermitido) {
+            http_response_code(403);
+            echo 'Acceso denegado: no tiene permisos para ver comprobantes.';
             exit;
         }
     }
@@ -585,4 +751,3 @@ class SunatController
         }
     }
 }
-

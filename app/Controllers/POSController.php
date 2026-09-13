@@ -320,13 +320,6 @@ class POSController
      *
      * @param int $ventaId ID de la venta
      */
-/**
-     * Genera el PDF del comprobante y lo envía al navegador
-     *
-     * GET /pos/pdf/123
-     *
-     * @param int $ventaId ID de la venta
-     */
     public function printPDF(int $ventaId): void
     {
         $this->requireAuth();
@@ -338,9 +331,31 @@ class POSController
             return;
         }
 
+        // 👇 RECUPERAR DATOS REALES DEL CLIENTE (RAZON SOCIAL + DNI/RUC)
+        $clienteId = !empty($venta['cliente_id']) ? (int)$venta['cliente_id'] : 1;
+        $stmtCli = $this->db->prepare("
+            SELECT id, tipo_doc, numero_doc, razon_social, nombres, apellidos, direccion 
+            FROM clientes 
+            WHERE id = :cid 
+            LIMIT 1
+        ");
+        $stmtCli->execute([':cid' => $clienteId]);
+        $cli = $stmtCli->fetch(\PDO::FETCH_ASSOC);
+
+        if ($cli && (int)$cli['id'] > 1) {
+            // Priorizar razon_social (donde está guardado SHALOM GONZALO HUAMAN DURAND)
+            $nombreReal = !empty($cli['razon_social']) 
+                ? $cli['razon_social'] 
+                : trim(($cli['nombres'] ?? '') . ' ' . ($cli['apellidos'] ?? ''));
+
+            $venta['cliente_nombre']     = $nombreReal;
+            $venta['cliente_numero_doc'] = $cli['numero_doc'] ?: '-';
+            $venta['cliente_direccion']  = $cli['direccion'] ?: '';
+        }
+        // 👆 FIN DEL BLOQUE
+
         $config = $this->getEmpresaConfig();
 
-        // Capturar la vista HTML para el PDF
         ob_start();
         $data = [
             'venta'       => $venta,
@@ -350,49 +365,24 @@ class POSController
         include VIEWS_PATH . '/pos/comprobante_pdf.php';
         $html = ob_get_clean();
 
-        // Usar DomPDF si está disponible
         if (class_exists('Dompdf\Dompdf')) {
-            $dompdf = new \Dompdf\Dompdf();
+            $options = new \Dompdf\Options();
+            $options->set('defaultFont', 'DejaVu Sans');
+            $options->set('isRemoteEnabled', true);
+            $dompdf = new \Dompdf\Dompdf($options);
             $dompdf->loadHtml($html);
             $dompdf->setPaper('A4', 'portrait');
             $dompdf->render();
 
-            // ==========================================
-            // LÓGICA DE NOMBRE DINÁMICO DEL PDF
-            // ==========================================
-            
-            // 1. Determinar el tipo de comprobante para el nombre
-            $tipoComprobante = 'Ticket';
-            if ($venta['tipo_comprobante'] === '01') {
-                $tipoComprobante = 'Factura';
-            } elseif ($venta['tipo_comprobante'] === '03') {
-                $tipoComprobante = 'Boleta';
-            }
-
-            // 2. Extraer y limpiar el nombre del cliente (usando el helper slug que tienes en functions.php)
+            $tipoComprobante = ($venta['tipo_comprobante'] === '01') ? 'Factura' : (($venta['tipo_comprobante'] === '03') ? 'Boleta' : 'Ticket');
             $nombreClienteOriginal = $venta['cliente_nombre'] ?? $venta['razon_social'] ?? 'Cliente_General';
-            $nombreClienteSlug = slug($nombreClienteOriginal);
+            $nombreClienteSlug = function_exists('slug') ? slug($nombreClienteOriginal) : preg_replace('/[^a-z0-9\-]/', '-', strtolower(trim($nombreClienteOriginal)));
+            $numeroComprobante = $venta['numero_comprobante'] ?? ($venta['serie'] . '-' . str_pad((string)($venta['numero'] ?? 0), 8, '0', STR_PAD_LEFT));
 
-            // 3. Obtener el número de comprobante asegurando el formato correcto (ej. F001-00000123)
-            $numeroComprobante = $venta['numero_comprobante'] ?? 
-                ($venta['serie'] . '-' . str_pad((string)($venta['numero'] ?? 0), 8, '0', STR_PAD_LEFT));
-
-            // 4. Armar el nombre final del archivo (Ej: Factura_F001-00000123_juan-perez.pdf)
-            $nombreArchivoFinal = sprintf('%s_%s_%s.pdf', 
-                $tipoComprobante, 
-                $numeroComprobante, 
-                $nombreClienteSlug
-            );
-
-            // Enviar al navegador con el nombre dinámico. 
-            // Attachment => false indica que el navegador intente abrirlo en una nueva pestaña
-            // en lugar de forzar la ventana de "Guardar como..." inmediatamente.
-            $dompdf->stream($nombreArchivoFinal, [
-                'Attachment' => false,
-            ]);
-            
+            $nombreArchivoFinal = sprintf('%s_%s_%s.pdf', $tipoComprobante, $numeroComprobante, $nombreClienteSlug);
+            $dompdf->stream($nombreArchivoFinal, ['Attachment' => false]);
+            return;
         } else {
-            // Fallback: mostrar HTML para impresión
             header('Content-Type: text/html; charset=UTF-8');
             echo $html;
         }
@@ -776,7 +766,7 @@ class POSController
         $urlMaps = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($consulta);
 
         try {
-            $qrCode = QrCode::create($urlMaps)->setSize(260)->setMargin(10);
+            $qrCode = QrCode::create($urlMaps)->setSize(260)->setMargin(2);
             return (new PngWriter())->write($qrCode)->getDataUri();
         } catch (\Throwable) {
             return null;

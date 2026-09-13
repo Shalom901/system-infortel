@@ -43,7 +43,7 @@ class QuoteController
         $urlMaps = 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($consulta);
 
         try {
-            $qrCode = QrCode::create($urlMaps)->setSize(260)->setMargin(10);
+            $qrCode = QrCode::create($urlMaps)->setSize(260)->setMargin(2);
             return (new PngWriter())->write($qrCode)->getDataUri();
         } catch (\Throwable) {
             return null;
@@ -125,6 +125,14 @@ class QuoteController
             return;
         }
 
+        // Si ingresaron dirección opcional en crear.php, actualizarla en el cliente
+        $direccionCliente = trim($postData['cliente_direccion'] ?? '');
+        if (!empty($direccionCliente) && $clienteId > 0) {
+            $stmtUpdCli = $this->db->prepare("UPDATE clientes SET direccion = :dir WHERE id = :id");
+            $stmtUpdCli->execute([':dir' => $direccionCliente, ':id' => $clienteId]);
+        }
+
+        // 2. Preparar datos para la cotización
         $data = [
             'cliente_id'        => $clienteId > 0 ? $clienteId : null,
             'usuario_id'        => (int)$_SESSION['user_id'],
@@ -132,6 +140,7 @@ class QuoteController
             'tipo_cambio'       => 1.0,
             'fecha_vencimiento' => $fechaVencimiento,
             'notas'             => trim($postData['notas'] ?? ''),
+            'condicion_pago'    => trim($postData['condicion_pago'] ?? ($postData['condiciones'] ?? 'Depósito / Transferencia bancaria')),
             'condiciones'       => trim($postData['condiciones'] ?? ''),
             'subtotal'          => (float)($postData['subtotal'] ?? 0),
             'descuento_total'   => (float)($postData['descuento_total'] ?? 0),
@@ -187,6 +196,16 @@ class QuoteController
             http_response_code(404);
             echo 'Cotización no encontrada.';
             return;
+        }
+
+        // 👇 AGREGAR ESTO: Si la dirección no vino del modelo, buscarla directamente en la tabla clientes
+        if (empty($cotizacion['cliente_direccion']) && empty($cotizacion['direccion']) && !empty($cotizacion['cliente_id'])) {
+            $stmtDir = $this->db->prepare("SELECT direccion FROM clientes WHERE id = :cid LIMIT 1");
+            $stmtDir->execute([':cid' => (int)$cotizacion['cliente_id']]);
+            $dirEncontrada = $stmtDir->fetchColumn();
+            if (!empty($dirEncontrada)) {
+                $cotizacion['cliente_direccion'] = $dirEncontrada;
+            }
         }
 
         $config = $this->getEmpresaConfig();

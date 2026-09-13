@@ -349,6 +349,7 @@ class SaleModel
                 v.numero,
                 CONCAT(v.serie, '-', v.numero) AS numero_comprobante,
                 v.fecha_emision,
+                v.created_at,
                 v.moneda,
                 v.subtotal_gravado AS subtotal,
                 v.igv,

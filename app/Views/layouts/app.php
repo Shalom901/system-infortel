@@ -249,14 +249,28 @@
         <!-- Orbe decorativo superior (Replica el efecto del login) -->
         <div class="absolute top-[-50px] left-[-50px] w-48 h-48 bg-sky-400/20 blur-3xl rounded-full pointer-events-none"></div>
 
-        <!-- Logo -->
-        <div class="h-16 flex items-center px-6 border-b border-white/60 gap-3 relative z-10">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-sky-600 flex items-center justify-center shadow-lg shadow-primary/30">
-                <i class="fa-solid fa-bolt text-white text-lg"></i>
-            </div>
-            <div>
-                <h1 class="text-lg font-black text-slate-800 tracking-tight leading-none"><?= defined('APP_NAME') ? APP_NAME : 'FactuPucallpa' ?></h1>
-                <p class="text-[10px] text-sky-600 font-bold uppercase tracking-widest mt-1">Premium POS</p>
+        <!-- Logo con Fondo de Imagen -->
+        <div class="h-20 flex items-center px-5 border-b border-slate-200/80 relative z-10 overflow-hidden">
+            <!-- 1. Imagen de fondo (coloca tu imagen en public/assets/img/) -->
+            <img src="/assets/img/fondoLogo.jfif" alt="Fondo" class="absolute inset-0 w-full h-full object-cover object-center">
+            
+            <!-- 2. Capa oscura semitransparente (overlay) para que las letras se lean nítidas -->
+            <div class="absolute inset-0 bg-slate-900/65 backdrop-blur-[1px]"></div>
+
+            <!-- 3. Contenido encima del fondo (z-10 para estar al frente) -->
+            <div class="relative z-10 flex items-center gap-3 w-full">
+                <!-- Ícono del logo (o tu logo pequeño) -->
+                <!--<div class="w-10 h-10 rounded-xl bg-blue-600/90 flex-shrink-0 flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20">
+                    <i class="fa-solid fa-bolt text-white text-lg"></i>
+                </div>-->
+                
+                <!-- Letras del logo -->
+                <div>
+                    <h1 class="text-sm font-black text-white tracking-tight leading-tight drop-shadow-sm">
+                        <?= defined('APP_NAME') ? APP_NAME : 'INFORTEL COMP E.I.R.L' ?>
+                    </h1>
+                    <p class="text-[10px] text-sky-300 font-bold uppercase tracking-widest mt-0.5">v1.1</p>
+                </div>
             </div>
         </div>
 
@@ -332,35 +346,52 @@
             </div>
 
             <!-- Acciones Globales -->
+
             <div class="flex items-center gap-2 sm:gap-4">
-                
-                <!-- Contenedor Dinámico de Notificaciones (Lazy Load) -->
                 <div class="relative" id="notificationContainer">
-                    <button id="notificationBtn" class="relative w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:text-primary hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-all focus:outline-none">
+                    <button id="notificationBtn" type="button" class="relative w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:text-primary hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-all focus:outline-none">
                         <i class="fa-regular fa-bell text-xl"></i>
+
+                        <!-- Punto rojo con animación de pulso (se activa por JS) -->
                         <span id="notificationBadge" class="hidden absolute top-2 right-2 flex h-2.5 w-2.5">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border-2 border-white dark:border-slate-900 transition-colors"></span>
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 border-2 border-white dark:border-slate-900 transition-colors"></span>
                         </span>
                     </button>
 
                     <!-- Panel Flotante de Notificaciones -->
                     <div id="notificationDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden transform opacity-0 scale-95 transition-all duration-200 origin-top-right z-50">
                         <div class="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
-                            <h3 class="text-sm font-bold text-slate-800 dark:text-white">Alertas de Stock</h3>
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-red-600 bg-red-100 dark:bg-red-900/30 px-2 py-1 rounded-md">Prioridad</span>
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-xs"></i> Alertas de Stock
+                            </h3>
+                            <span id="notifCountPill" class="text-[10px] font-bold uppercase tracking-wider text-rose-600 bg-rose-100 dark:bg-rose-900/30 px-2 py-0.5 rounded-md">0 alertas</span>
                         </div>
                         <div id="notificationList" class="max-h-72 overflow-y-auto custom-scrollbar p-2"></div>
                     </div>
                 </div>
 
-                <!-- Theme toggle -->
-                <button id="themeToggle" onclick="toggleTheme()" class="w-10 h-10 rounded-xl flex items-center justify-center bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary shadow-sm border border-slate-200 dark:border-slate-700 transition-all hover:-translate-y-0.5 hover:shadow-md">
-                    <?php if (($_SESSION['theme'] ?? 'light') === 'dark'): ?>
-                        <i class="fa-solid fa-sun text-yellow-500 text-lg"></i>
-                    <?php else: ?>
-                        <i class="fa-solid fa-moon text-lg"></i>
-                    <?php endif; ?>
+                <!-- Theme toggle Moderno (Cápsula con estado PHP inicial) -->
+                <?php $isDark = (($_SESSION['theme'] ?? 'light') === 'dark'); ?>
+                <button id="themeToggle" type="button" onclick="toggleTheme()" aria-label="Cambiar tema"
+                    class="relative w-16 h-8 bg-slate-100 dark:bg-slate-800 rounded-full p-1 border border-slate-200 dark:border-slate-700 shadow-inner flex items-center justify-between cursor-pointer select-none transition-colors duration-300 focus:outline-none hover:border-slate-300 dark:hover:border-slate-600">
+                    
+                    <!-- Ícono del sol de fondo -->
+                    <span class="w-6 h-6 flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs pointer-events-none">
+                        <i class="fa-solid fa-sun"></i>
+                    </span>
+
+                    <!-- Ícono de la luna de fondo -->
+                    <span class="w-6 h-6 flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs pointer-events-none">
+                        <i class="fa-solid fa-moon"></i>
+                    </span>
+
+                    <!-- Esfera deslizante azul (su posición inicial la define PHP) -->
+                    <div id="themeToggleThumb"
+                        style="transform: <?= $isDark ? 'translateX(32px)' : 'translateX(0px)' ?>;"
+                        class="absolute left-1 top-1 w-6 h-6 rounded-full bg-blue-600 text-white shadow-md flex items-center justify-center text-[10px] transition-transform duration-300 ease-out">
+                        <i id="themeToggleIcon" class="fa-solid <?= $isDark ? 'fa-moon' : 'fa-sun' ?>"></i>
+                    </div>
                 </button>
 
                 <div class="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
@@ -432,38 +463,39 @@
 
     <!-- ===================== JS ===================== -->
     <script>
-    // ── Theme ─────────────────────────────────────────────
-    function toggleTheme() {
+        function toggleTheme() {
         const html = document.documentElement;
         const isDark = html.classList.toggle('dark');
-        const theme = isDark ? 'dark' : 'light';
-        
-        // 1. Guardar en localStorage (inmediato, persistente)
-        localStorage.setItem('theme', theme);
-        
-        // 2. Guardar en cookie para server-side
-        document.cookie = `theme=${theme};path=/;max-age=31536000`;
-        
-        // 3. Actualizar icono del botón
-        const btn = document.getElementById('themeToggle');
-        if (btn) {
-            btn.innerHTML = isDark 
-                ? '<i class="fa-solid fa-sun text-yellow-500 text-lg"></i>'
-                : '<i class="fa-solid fa-moon text-lg"></i>';
+        const newTheme = isDark ? 'dark' : 'light';
+
+        // 1. Mover la esfera y cambiar el ícono en el botón
+        const thumb = document.getElementById('themeToggleThumb');
+        const icon = document.getElementById('themeToggleIcon');
+        if (thumb && icon) {
+            thumb.style.transform = isDark ? 'translateX(32px)' : 'translateX(0px)';
+            icon.className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
         }
-        
-        // 4. Notificar a los gráficos Chart.js para que se repinten con colores dark/light
-        if (typeof updateDashboard === 'function' && window.__dashboardData) {
-            // Pequeño retraso para que los estilos CSS se apliquen
-            setTimeout(() => updateDashboard(window.__dashboardData), 100);
-        }
-        
-        // 5. Persistir en sesión via AJAX (sin recargar, sin errores)
-        fetch('<?= baseUrl('usuario/tema') ?>', {
+
+        // 2. Guardar preferencia en el navegador
+        localStorage.setItem('theme', newTheme);
+
+        // 3. Obtener el Token CSRF de seguridad de la página
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        // 4. Enviar al backend con el token CSRF para evitar el error 403
+        fetch('/usuario/tema', {
             method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: '_token=<?= csrf_token() ?>&tema=' + theme
-        }).catch(() => {});
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken // 👈 Token de seguridad en cabecera
+            },
+            body: 'tema=' + encodeURIComponent(newTheme) + 
+                '&theme=' + encodeURIComponent(newTheme) + 
+                '&csrf_token=' + encodeURIComponent(csrfToken) // 👈 Token en el cuerpo
+        }).catch(err => {
+            console.warn('No se pudo sincronizar el tema en la sesión:', err);
+        });
     }
 
     // ── Sidebar toggle ────────────────────────────────────
@@ -652,25 +684,31 @@
         initUserDropdown();
     }
 
-// ── Sistema de Notificaciones Enterprise (Turbo SPA Safe) ─────────
+// ── Sistema de Notificaciones Enterprise (Turbo SPA Safe Corregido) ─────────
     function initNotificationSystem() {
         const btn = document.getElementById('notificationBtn');
         const dropdown = document.getElementById('notificationDropdown');
         const container = document.getElementById('notificationContainer');
         const list = document.getElementById('notificationList');
-        const badge = document.getElementById('notificationBadge');
 
         if (!btn || !dropdown || !container) return;
 
-        // Prevención de listeners duplicados por Turbo
+        // 1. Prevención de listeners duplicados por Hotwire Turbo
         const newBtn = btn.cloneNode(true);
         btn.parentNode.replaceChild(newBtn, btn);
 
+        // 2. BUSCAR EL BADGE EN VIVO (dentro del botón clonado en el DOM real)
+        const getBadge = () => newBtn.querySelector('#notificationBadge') || document.getElementById('notificationBadge');
+
+        // 3. CONSULTAR INMEDIATAMENTE AL CARGAR LA PÁGINA (Enciende el punto rojo solo)
+        revisarPuntoRojo(getBadge());
+
+        // 4. Evento al hacer clic en la campana
         newBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (dropdown.classList.contains('hidden')) {
                 const userDropdown = document.getElementById('userDropdown');
-                if(userDropdown && !userDropdown.classList.contains('hidden')) closeDropdown(userDropdown);
+                if (userDropdown && !userDropdown.classList.contains('hidden')) closeDropdown(userDropdown);
 
                 dropdown.classList.remove('hidden');
                 setTimeout(() => {
@@ -678,8 +716,8 @@
                     dropdown.classList.add('opacity-100', 'scale-100');
                 }, 10);
 
-                // Llamada al nuevo motor agregador
-                fetchSystemAlerts(list, badge);
+                // Cargar el listado de alertas en el desplegable
+                fetchSystemAlerts(list, getBadge());
             } else {
                 closeDropdown(dropdown);
             }
@@ -692,22 +730,40 @@
         });
     }
 
+    // Función rápida que solo revisa si hay alertas para prender/apagar el punto rojo
+    function revisarPuntoRojo(badgeElement) {
+        if (!badgeElement) return;
+        fetch('<?= baseUrl('api/notificaciones/todas') ?>')
+            .then(res => res.json())
+            .then(data => {
+                const alertas = Array.isArray(data) ? data : (data.alertas || data.data || []);
+                if (alertas.length > 0) {
+                    badgeElement.classList.remove('hidden'); // 👈 ENCIENDE EL PUNTO ROJO AL CARGAR
+                } else {
+                    badgeElement.classList.add('hidden');    // 👈 LO APAGA SI NO HAY ALERTAS
+                }
+            })
+            .catch(() => {});
+    }
+
+    // Función completa que llena el menú desplegable al hacer clic
     function fetchSystemAlerts(listElement, badgeElement) {
         listElement.innerHTML = '<div class="flex items-center justify-center p-6 text-slate-400 text-sm"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Procesando telemetría...</div>';
         
         fetch('<?= baseUrl('api/notificaciones/todas') ?>') 
             .then(res => res.json())
             .then(data => {
-                if(data.length === 0) {
-                    listElement.innerHTML = '<div class="p-6 text-center text-sm text-slate-500"><i class="fa-solid fa-shield-check text-emerald-500 text-3xl mb-2 block"></i> Sistemas Operativos</div>';
-                    badgeElement.classList.add('hidden');
+                const alertas = Array.isArray(data) ? data : (data.alertas || data.data || []);
+                
+                if (alertas.length === 0) {
+                    listElement.innerHTML = '<div class="p-6 text-center text-sm text-slate-500"><i class="fa-solid fa-shield-check text-emerald-500 text-3xl mb-2 block"></i> Sin alertas pendientes</div>';
+                    if (badgeElement) badgeElement.classList.add('hidden');
                     return;
                 }
                 
-                badgeElement.classList.remove('hidden');
-                badgeElement.textContent = data.length;
+                if (badgeElement) badgeElement.classList.remove('hidden');
                 
-                listElement.innerHTML = data.map(alerta => {
+                listElement.innerHTML = alertas.map(alerta => {
                     const bgColors = {
                         'red': 'bg-red-100 dark:bg-red-900/30 text-red-600',
                         'purple': 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 border-purple-500',
@@ -716,23 +772,23 @@
                     };
                     
                     const theme = bgColors[alerta.color] || bgColors['red'];
+                    const icono = alerta.icono || 'triangle-exclamation';
 
-                    // Retornamos una etiqueta <a> nativa para soportar la navegación Hotwire Turbo
                     return `
-                        <a href="${alerta.url}" data-turbo-action="advance" class="w-full text-left flex items-start gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-xl transition-colors group border-l-2 border-transparent hover:border-${alerta.color}-500">
+                        <a href="${alerta.url || '#'}" data-turbo-action="advance" class="w-full text-left flex items-start gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-xl transition-colors group border-l-2 border-transparent hover:border-${alerta.color || 'red'}-500">
                             <div class="w-9 h-9 rounded-full ${theme} flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform">
-                                <i class="fa-solid ${alerta.icono} text-sm"></i>
+                                <i class="fa-solid fa-${icono} text-sm"></i>
                             </div>
                             <div class="min-w-0 flex-1">
-                                <p class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">${alerta.titulo}</p>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">${alerta.mensaje}</p>
+                                <p class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">${alerta.titulo || 'Alerta'}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">${alerta.mensaje || ''}</p>
                             </div>
                         </a>
                     `;
                 }).join('');
             })
             .catch(() => {
-                listElement.innerHTML = '<div class="p-4 text-center text-sm text-red-500">Fallo de conexión con el core analítico.</div>';
+                listElement.innerHTML = '<div class="p-4 text-center text-sm text-red-500">Fallo de conexión con el servidor.</div>';
             });
     }
 

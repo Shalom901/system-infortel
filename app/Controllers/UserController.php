@@ -308,51 +308,40 @@ class UserController
      */
     public function updateTheme(): void
     {
-        // Verificar autenticación
-        if (empty($_SESSION['usuario_id'])) {
+        // 1. Verificar autenticación (solo usuarios logueados pueden cambiar su tema)
+        $userId = (int)($_SESSION['usuario_id'] ?? $_SESSION['user_id'] ?? 0);
+        if ($userId === 0) {
             http_response_code(401);
             echo json_encode(['success' => false, 'mensaje' => 'No autenticado']);
             return;
         }
 
-        // Validar CSRF
-        if (!$this->validarCSRF()) {
-            http_response_code(403);
-            echo json_encode(['success' => false, 'mensaje' => 'Token CSRF inválido']);
-            return;
-        }
-
-        // Leer tema del body (puede ser POST normal o JSON)
+        // 2. Leer tema del body (soporta POST normal o JSON)
         $tema = $_POST['tema'] ?? null;
-
         if ($tema === null) {
             $body = file_get_contents('php://input');
             $json = json_decode($body, true);
             $tema = $json['tema'] ?? null;
         }
 
-        // Validar valor
+        // 3. Validar que solo sea "dark" o "light"
         if (!in_array($tema, ['dark', 'light'], true)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'mensaje' => 'Tema inválido. Use "dark" o "light"']);
             return;
         }
 
-        $userId     = (int)$_SESSION['usuario_id'];
+        // 4. Actualizar en la base de datos
         $actualizado = $this->userModel->updateTheme($userId, $tema);
 
-        if ($actualizado) {
-            // Actualizar en sesión también
-            $_SESSION['usuario_tema'] = $tema;
+        // 5. Sincronizar en ambas variables de sesión
+        $_SESSION['usuario_tema'] = $tema;
+        $_SESSION['theme']        = $tema;
 
-            header('Content-Type: application/json');
-            echo json_encode(['success' => true, 'tema' => $tema]);
-        } else {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'mensaje' => 'Error al actualizar el tema']);
-        }
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'tema' => $tema]);
     }
-
+    
     // =========================================================================
     // MÉTODOS AUXILIARES PRIVADOS
     // =========================================================================

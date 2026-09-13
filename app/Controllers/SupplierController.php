@@ -38,7 +38,7 @@ class SupplierController
         $proveedores      = $resultado['data'] ?? [];
         $totalProveedores = $resultado['total'] ?? 0;
         
-        $title = 'Proveedores - Módulo Core';
+        $title = 'Proveedores';
 
         ob_start();
         require VIEWS_PATH . '/suppliers/index.php';
